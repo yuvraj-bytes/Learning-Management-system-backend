@@ -70,7 +70,6 @@ export class LessonService {
 
     async getAllLessons(course_id: string) {
         const filteredCourses = await this.lessonTable.find({ course_id: course_id });
-        console.log("🚀 ~ CourseService ~ getAllCourses ~ filteredCourses:", filteredCourses)
         return filteredCourses;
     }
 

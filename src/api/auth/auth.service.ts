@@ -34,7 +34,6 @@ export class AuthService {
 
     async signIn(email: string, password: string): Promise<LoginOutputDto> {
         const user = await this.userModel.findOne({ email });
-        console.log("🚀 ~ AuthService ~ signIn ~ user:", user)
 
         if (!user) {
             return { status: 404, message: 'User not found' };
