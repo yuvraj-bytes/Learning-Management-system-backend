@@ -12,6 +12,7 @@ import { MESSAGE } from "src/constants/constants";
 import { extname } from "path";
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class CourseService {
@@ -195,7 +196,7 @@ export class CourseService {
     async uploadImage(courseId: string, file: Express.Multer.File): Promise<string> {
         const fileExtName = extname(file.originalname);
         const fileName = `${uuidv4()}${fileExtName}`;
-        const filePath = `/media/bytes-pallavi/workspace/projects/demo/NestJS/LMS/lms/uploads/${fileName}`;
+        const filePath = path.join(process.cwd() + '/uploads/' + fileName);
         await fs.promises.writeFile(filePath, file.buffer);
         await this.courseModel.findByIdAndUpdate(courseId, { image: filePath });
         return filePath;
