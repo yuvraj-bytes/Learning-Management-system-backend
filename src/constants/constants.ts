@@ -1,19 +1,24 @@
-export const USER_NOT_FOUND = 'User Not Found';
-export const USERS_FOUND_SUCCESSFULLY = 'Users Found Successfully';
-export const LOGIN_SUCCESSFUL = 'Login Successfully';
-export const INVALID_CREDENTIALS = 'Invalid credentials';
-export const FIELDS_REQUIRED = 'All fields are required';
-export const USER_ALREADY_EXITS = 'User already exists';
-export const USERS_DATA = 'Users data';
-export const USER_DETAILS_UPDATED = 'User details updated'
-export const USER_DELETED = 'User Deleted';
-export const COURSE_ALREADY_EXISTS = 'Course already exists';
-export const COURSE_CREATED = 'Course created successfully';
-export const COURSE_NOT_FOUND = 'Course not found!'
-export const COURSE_DATA = 'Course Found';
-export const COURSE_UPDATED = 'Course updated successfully';
-export const REQUIRED_COURSE_ID = 'Course ID is required';
-export const COURSE_DELETED = 'Course deleted successfully';
-export const COURSE_ENROLLED = 'You have enroll a course successfully';
-export const LESSON_NOT_FOUND = 'Lesson not found';
-export const LESSON_CREATED = 'Lesson Created';
+export const MESSAGE = {
+    USER_NOT_FOUND: 'User Not Found',
+    USERS_FOUND_SUCCESSFULLY: 'Users Found Successfully',
+    LOGIN_SUCCESSFUL: 'Login Successfully',
+    INVALID_CREDENTIALS: 'Invalid credentials',
+    FIELDS_REQUIRED: 'All fields are required',
+    USER_ALREADY_EXITS: 'User already exists',
+    USERS_DATA: 'Users data',
+    USER_DETAILS_UPDATED: 'User details updated',
+    USER_DELETED: 'User Deleted',
+    COURSE_ALREADY_EXISTS: 'Course already exists',
+    COURSE_CREATED: 'Course created successfully',
+    COURSE_NOT_FOUND: 'Course not found!',
+    COURSE_DATA: 'Course Found',
+    COURSE_UPDATED: 'Course updated successfully',
+    REQUIRED_COURSE_ID: 'Course ID is required',
+    COURSE_DELETED: 'Course deleted successfully',
+    COURSE_ENROLLED: 'You have enroll a course successfully',
+    LESSON_NOT_FOUND: 'Lesson not found',
+    LESSON_CREATED: 'Lesson Created',
+    PASSWORD_RESET: 'Password reset successful',
+    INVALID_TOKEN: 'Invalid or expired reset token',
+    RESET_PASSWORD_EMAIL_SENT: 'Reset password email sent'
+};

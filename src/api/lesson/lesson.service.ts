@@ -7,8 +7,6 @@ import { join } from 'path';
 import { createWriteStream } from 'fs';
 import { extname } from 'path';
 import { CreateLessonDto } from "./dto/create-lesson.dto";
-import { LESSON_CREATED } from "src/constants/constants";
-import { LessonOutputDto } from "./dto/lesson-output";
 
 @Injectable()
 export class LessonService {

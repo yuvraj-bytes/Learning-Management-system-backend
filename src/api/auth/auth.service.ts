@@ -1,4 +1,4 @@
-import { HttpCode, HttpStatus, Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { UserDto } from "./dto/user.dto";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
@@ -6,9 +6,8 @@ import { User } from "../users/schema/user.schema";
 import * as bcrypt from 'bcrypt';
 import { LoginOutputDto } from "./dto/login-output.dto";
 import { JwtService } from "@nestjs/jwt";
-import { FIELDS_REQUIRED, INVALID_CREDENTIALS, LOGIN_SUCCESSFUL, USER_ALREADY_EXITS, USER_NOT_FOUND } from "src/constants/constants";
+import { MESSAGE } from "src/constants/constants";
 import { SignupOutputDto } from "./dto/signup-output";
-import * as nodemailer from 'nodemailer';
 import { NodeMailerService } from "./ node-mailer.service";
 import { randomBytes } from 'crypto';
 @Injectable()
@@ -22,13 +21,13 @@ export class AuthService {
 
         const { email, password, ...rest } = createUserDto;
         if (!createUserDto.first_name || !createUserDto.email || !createUserDto.password) {
-            return { status: HttpStatus.BAD_REQUEST, message: FIELDS_REQUIRED };
+            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.FIELDS_REQUIRED };
         }
 
         const existingUser = await this.userModel.findOne({ email });
 
         if (existingUser) {
-            return { status: HttpStatus.FORBIDDEN, message: USER_ALREADY_EXITS };
+            return { status: HttpStatus.FORBIDDEN, message: MESSAGE.USER_ALREADY_EXITS };
         }
 
         const saltRounds = 10;
@@ -41,14 +40,14 @@ export class AuthService {
         const user = await this.userModel.findOne({ email });
 
         if (!user) {
-            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         } else {
             const match = await bcrypt.compare(password, user.password);
             if (match) {
                 const token = await this.jwtService.signAsync({ id: user.id, email: user.email, role: user.role, username: user.first_name });
-                return { status: HttpStatus.OK, message: LOGIN_SUCCESSFUL, token, data: user };
+                return { status: HttpStatus.OK, message: MESSAGE.LOGIN_SUCCESSFUL, token, data: user };
             } else {
-                return { status: HttpStatus.BAD_REQUEST, message: INVALID_CREDENTIALS };
+                return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.INVALID_CREDENTIALS };
             }
         }
     }
@@ -63,18 +62,17 @@ export class AuthService {
             { new: true }
         );
         await this.nodeMailerService.sendResetPasswordEmail(email, resetLink);
-        return { message: 'Reset password email sent' };
+        return { status: HttpStatus.OK, message: MESSAGE.RESET_PASSWORD_EMAIL_SENT };
     }
 
     async resetPassword(email: string, newPassword: string, resetToken: string) {
         const user = await this.userModel.findOne({
-            email,
             resetToken,
             resetTokenExpiration: { $gt: new Date() },
         });
 
         if (!user) {
-            throw new Error('Invalid or expired reset token');
+            throw new Error(MESSAGE.INVALID_TOKEN);
         }
 
         const saltRounds = 10;
@@ -84,6 +82,6 @@ export class AuthService {
         user.resetTokenExpiration = null;
         await user.save();
 
-        return { message: 'Password reset successful' };
+        return { status: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
     }
 }

@@ -8,7 +8,7 @@ import { User } from "../users/schema/user.schema";
 import { Lesson } from "../lesson/schema/lesson.schema";
 import { Enrollment } from "./schema/enrollments.schema";
 import { UpdateCourseDto } from "./dto/update-course.dto";
-import { COURSE_ALREADY_EXISTS, COURSE_CREATED, COURSE_DATA, COURSE_DELETED, COURSE_ENROLLED, COURSE_NOT_FOUND, COURSE_UPDATED, FIELDS_REQUIRED, LESSON_NOT_FOUND, REQUIRED_COURSE_ID, USER_NOT_FOUND } from "src/constants/constants";
+import { MESSAGE } from "src/constants/constants";
 import { extname } from "path";
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
@@ -24,16 +24,16 @@ export class CourseService {
     async createCourse(createCourseDto: CreateCourseDto): Promise<any> {
 
         if (!createCourseDto.title || !createCourseDto.description || !createCourseDto.price) {
-            return { status: HttpStatus.BAD_REQUEST, message: FIELDS_REQUIRED };
+            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.FIELDS_REQUIRED };
         }
 
         const courseExists = await this.courseModel.findOne({ title: createCourseDto.title });
         if (courseExists) {
-            return { status: HttpStatus.BAD_REQUEST, message: COURSE_ALREADY_EXISTS };
+            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.COURSE_ALREADY_EXISTS };
         }
 
         const course = await this.courseModel.create({ ...createCourseDto });
-        return { status: HttpStatus.OK, message: COURSE_CREATED };
+        return { status: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
     }
 
     async getCourseList(userId: string): Promise<any> {
@@ -66,45 +66,45 @@ export class CourseService {
             }
         ]);
         if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
         }
-        return { status: HttpStatus.OK, message: COURSE_DATA, data: course };
+        return { status: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
     }
 
     async getAllCourse(): Promise<any> {
         const course = await this.courseModel.find();
         if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
         }
-        return { status: HttpStatus.OK, message: COURSE_DATA, data: course };
+        return { status: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
     }
 
     async updateCourse(updateCourseDto: UpdateCourseDto): Promise<any> {
         if (!updateCourseDto._id) {
-            return { status: HttpStatus.BAD_REQUEST, message: REQUIRED_COURSE_ID };
+            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.REQUIRED_COURSE_ID };
         }
 
         const course = await this.courseModel.findOne({ _id: updateCourseDto._id });
         if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
         }
 
         const updatedCourse = await this.courseModel.findByIdAndUpdate(course._id, { ...updateCourseDto });
-        return { status: HttpStatus.OK, message: COURSE_UPDATED };
+        return { status: HttpStatus.OK, message: MESSAGE.COURSE_UPDATED };
     }
 
     async deleteCourse(id: string): Promise<any> {
         if (!id) {
-            return { status: HttpStatus.BAD_REQUEST, message: REQUIRED_COURSE_ID };
+            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.REQUIRED_COURSE_ID };
         }
 
         const course = await this.courseModel.findOne({ _id: id });
         if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND }
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND }
         }
 
         await this.courseModel.findByIdAndDelete({ _id: id });
-        return { status: HttpStatus.OK, message: COURSE_DELETED };
+        return { status: HttpStatus.OK, message: MESSAGE.COURSE_DELETED };
     }
 
     async createEnrollment(createEnrollment: CreateEnrollmentDto, userdata: any): Promise<any> {
@@ -112,7 +112,7 @@ export class CourseService {
         const user = await this.userTable.findOne({ _id: userdata.userId });
 
         if (!user) {
-            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         }
 
         const enrollmentExists = await this.enrollmentTable.findOne({
@@ -129,7 +129,7 @@ export class CourseService {
             course_id: course._id.toString()
         });
 
-        return { message: COURSE_ENROLLED, enrollment, statusCode: HttpStatus.OK };
+        return { message: MESSAGE.COURSE_ENROLLED, enrollment, statusCode: HttpStatus.OK };
     }
 
     async leaveCourse(createEnrollment: CreateEnrollmentDto, userdata: any): Promise<any> {
@@ -137,10 +137,10 @@ export class CourseService {
         const user = await this.userTable.findOne({ _id: userdata.userId });
 
         if (!lesson) {
-            return { status: HttpStatus.NOT_FOUND, message: LESSON_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.LESSON_NOT_FOUND };
         }
         if (!user) {
-            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         }
 
         const enrollment = await this.enrollmentTable.findOneAndDelete({
@@ -187,9 +187,9 @@ export class CourseService {
             }
         ]);
         if (!course || course.length === 0) {
-            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
         }
-        return { status: HttpStatus.OK, message: COURSE_DATA, data: course };
+        return { status: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
     }
 
     async uploadImage(courseId: string, file: Express.Multer.File): Promise<string> {

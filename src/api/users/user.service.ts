@@ -6,8 +6,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { hash } from "bcrypt";
 import { Enrollment } from "../course/schema/enrollments.schema";
 import { UserOutputDto } from "./dto/users-output-dto";
-import { USERS_DATA, USER_DELETED, USER_DETAILS_UPDATED, USER_NOT_FOUND } from "src/constants/constants";
-
+import { MESSAGE } from "src/constants/constants";
 @Injectable()
 export class UserService {
 
@@ -18,20 +17,20 @@ export class UserService {
     async getUsers(): Promise<UserOutputDto | User> {
         const users = await this.userModel.find().exec();
         if (!users) {
-            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         }
         else {
-            return { status: HttpStatus.OK, message: USERS_DATA, data: users };
+            return { status: HttpStatus.OK, message: MESSAGE.USERS_DATA, data: users };
         }
     }
 
     async getUserById(id: string): Promise<UserOutputDto> {
         const user = await this.userModel.findById(id).exec();
         if (!user) {
-            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         }
         else {
-            return { status: HttpStatus.OK, message: USERS_DATA, data: user };
+            return { status: HttpStatus.OK, message: MESSAGE.USERS_DATA, data: user };
         }
     }
 
@@ -40,18 +39,18 @@ export class UserService {
         const hashedPassword = await hash(password, 10);
         const user = await this.userModel.findByIdAndUpdate(id, { ...rest, password: hashedPassword });
         if (!user) {
-            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         } else {
-            return { status: HttpStatus.OK, message: USER_DETAILS_UPDATED, data: user };
+            return { status: HttpStatus.OK, message: MESSAGE.USER_DETAILS_UPDATED, data: user };
         }
     }
 
     async deleteUser(id: string): Promise<UserOutputDto> {
         const user = await this.userModel.findByIdAndDelete(id);
         if (!user) {
-            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         } else {
-            return { status: HttpStatus.OK, message: USER_DELETED };
+            return { status: HttpStatus.OK, message: MESSAGE.USER_DELETED };
         }
     }
 
@@ -60,7 +59,7 @@ export class UserService {
         const enrolledCourses = await this.enrollmentModel.find({ user_id: id, course_id: course_id });
         return {
             status: HttpStatus.OK,
-            message: USERS_DATA,
+            message: MESSAGE.USERS_DATA,
             isEnrolled: (enrolledCourses.length > 0 ? true : false),
             user: users
         }

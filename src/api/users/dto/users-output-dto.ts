@@ -1,7 +1,8 @@
-import { IS_ALPHA, IsString } from "class-validator";
+import { IS_ALPHA, IsNumber, IsString } from "class-validator";
 
 export class UserOutputDto {
 
+    @IsNumber()
     status: number;
 
     @IsString()
