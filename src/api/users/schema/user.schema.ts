@@ -29,6 +29,12 @@ export class User {
     @Prop()
     course: string;
 
+    @Prop()
+    resetToken: string;
+
+    @Prop()
+    resetTokenExpiration: Date;
+
     @Prop({ default: Date.now })
     created_at: Date;
 

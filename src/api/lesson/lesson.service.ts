@@ -7,6 +7,8 @@ import { join } from 'path';
 import { createWriteStream } from 'fs';
 import { extname } from 'path';
 import { CreateLessonDto } from "./dto/create-lesson.dto";
+import { LESSON_CREATED } from "src/constants/constants";
+import { LessonOutputDto } from "./dto/lesson-output";
 
 @Injectable()
 export class LessonService {
@@ -15,7 +17,8 @@ export class LessonService {
 
     async createLesson(lesson: CreateLessonDto): Promise<Lesson> {
         const createdLesson = new this.lessonTable(lesson);
-        return createdLesson.save();
+        createdLesson.save();
+        return createdLesson;
     }
 
     async addVideoLesson(videoFile: Express.Multer.File, id: string): Promise<Lesson> {

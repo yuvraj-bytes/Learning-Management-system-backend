@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Course } from "./schema/course.schema";
 import { Model } from "mongoose";
@@ -8,6 +8,10 @@ import { User } from "../users/schema/user.schema";
 import { Lesson } from "../lesson/schema/lesson.schema";
 import { Enrollment } from "./schema/enrollments.schema";
 import { UpdateCourseDto } from "./dto/update-course.dto";
+import { COURSE_ALREADY_EXISTS, COURSE_CREATED, COURSE_DATA, COURSE_DELETED, COURSE_ENROLLED, COURSE_NOT_FOUND, COURSE_UPDATED, FIELDS_REQUIRED, LESSON_NOT_FOUND, REQUIRED_COURSE_ID, USER_NOT_FOUND } from "src/constants/constants";
+import { extname } from "path";
+import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs';
 
 @Injectable()
 export class CourseService {
@@ -17,19 +21,19 @@ export class CourseService {
         @InjectModel(Enrollment.name) private readonly enrollmentTable: Model<Enrollment>,
         @InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>) { }
 
-    async createCourse(createCourseDto: CreateCourseDto): Promise<string> {
+    async createCourse(createCourseDto: CreateCourseDto): Promise<any> {
 
         if (!createCourseDto.title || !createCourseDto.description || !createCourseDto.price) {
-            return 'All fields are required';
+            return { status: HttpStatus.BAD_REQUEST, message: FIELDS_REQUIRED };
         }
 
         const courseExists = await this.courseModel.findOne({ title: createCourseDto.title });
         if (courseExists) {
-            return 'Course already exists';
+            return { status: HttpStatus.BAD_REQUEST, message: COURSE_ALREADY_EXISTS };
         }
 
         const course = await this.courseModel.create({ ...createCourseDto });
-        return "Course created successfully";
+        return { status: HttpStatus.OK, message: COURSE_CREATED };
     }
 
     async getCourseList(userId: string): Promise<any> {
@@ -62,53 +66,53 @@ export class CourseService {
             }
         ]);
         if (!course) {
-            return 'No courses found';
+            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND };
         }
-        return course;
+        return { status: HttpStatus.OK, message: COURSE_DATA, data: course };
     }
 
     async getAllCourse(): Promise<any> {
         const course = await this.courseModel.find();
         if (!course) {
-            return 'No courses found';
+            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND };
         }
-        return course;
+        return { status: HttpStatus.OK, message: COURSE_DATA, data: course };
     }
 
-    async updateCourse(updateCourseDto: UpdateCourseDto): Promise<string> {
+    async updateCourse(updateCourseDto: UpdateCourseDto): Promise<any> {
         if (!updateCourseDto._id) {
-            return 'Course ID is required';
+            return { status: HttpStatus.BAD_REQUEST, message: REQUIRED_COURSE_ID };
         }
 
         const course = await this.courseModel.findOne({ _id: updateCourseDto._id });
         if (!course) {
-            return 'Course not found';
+            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND };
         }
 
         const updatedCourse = await this.courseModel.findByIdAndUpdate(course._id, { ...updateCourseDto });
-        return 'Course updated successfully';
+        return { status: HttpStatus.OK, message: COURSE_UPDATED };
     }
 
-    async deleteCourse(id: string): Promise<string> {
+    async deleteCourse(id: string): Promise<any> {
         if (!id) {
-            return 'Course ID is required';
+            return { status: HttpStatus.BAD_REQUEST, message: REQUIRED_COURSE_ID };
         }
 
         const course = await this.courseModel.findOne({ _id: id });
         if (!course) {
-            return 'Course not found';
+            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND }
         }
 
         await this.courseModel.findByIdAndDelete({ _id: id });
-        return 'Course deleted successfully';
+        return { status: HttpStatus.OK, message: COURSE_DELETED };
     }
 
-    async createEnrollment(createEnrollment: CreateEnrollmentDto, userdata: any): Promise<{ enrollment?: any, statusCode: number, message?: any }> {
+    async createEnrollment(createEnrollment: CreateEnrollmentDto, userdata: any): Promise<any> {
         const course = await this.courseModel.findOne({ _id: createEnrollment.course_id });
         const user = await this.userTable.findOne({ _id: userdata.userId });
 
         if (!user) {
-            return { message: 'User not found', statusCode: 404 };
+            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
         }
 
         const enrollmentExists = await this.enrollmentTable.findOne({
@@ -117,7 +121,7 @@ export class CourseService {
         });
 
         if (enrollmentExists) {
-            return { message: 'Course already purchased by this user', statusCode: 400 };
+            return { message: 'Course already purchased by this user', statusCode: HttpStatus.BAD_REQUEST };
         }
 
         const enrollment = await this.enrollmentTable.create({
@@ -125,7 +129,7 @@ export class CourseService {
             course_id: course._id.toString()
         });
 
-        return { message: 'You have enroll a course successfully', enrollment, statusCode: 200 };
+        return { message: COURSE_ENROLLED, enrollment, statusCode: HttpStatus.OK };
     }
 
     async leaveCourse(createEnrollment: CreateEnrollmentDto, userdata: any): Promise<any> {
@@ -133,10 +137,10 @@ export class CourseService {
         const user = await this.userTable.findOne({ _id: userdata.userId });
 
         if (!lesson) {
-            return 'Lesson not found';
+            return { status: HttpStatus.NOT_FOUND, message: LESSON_NOT_FOUND };
         }
         if (!user) {
-            return 'User not found';
+            return { status: HttpStatus.NOT_FOUND, message: USER_NOT_FOUND };
         }
 
         const enrollment = await this.enrollmentTable.findOneAndDelete({
@@ -183,9 +187,17 @@ export class CourseService {
             }
         ]);
         if (!course || course.length === 0) {
-            return 'No courses found';
+            return { status: HttpStatus.NOT_FOUND, message: COURSE_NOT_FOUND };
         }
+        return { status: HttpStatus.OK, message: COURSE_DATA, data: course };
+    }
 
-        return course;
+    async uploadImage(courseId: string, file: Express.Multer.File): Promise<string> {
+        const fileExtName = extname(file.originalname);
+        const fileName = `${uuidv4()}${fileExtName}`;
+        const filePath = `/media/bytes-pallavi/workspace/projects/demo/NestJS/LMS/lms/uploads/${fileName}`;
+        await fs.promises.writeFile(filePath, file.buffer);
+        await this.courseModel.findByIdAndUpdate(courseId, { image: filePath });
+        return filePath;
     }
 }

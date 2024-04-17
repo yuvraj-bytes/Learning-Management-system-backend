@@ -17,6 +17,9 @@ export class Course {
     @Prop()
     instructor_id: string;
 
+    @Prop()
+    image: string;
+
     @Prop({ default: Date.now })
     created_at: Date;
 
