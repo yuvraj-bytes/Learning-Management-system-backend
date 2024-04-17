@@ -9,18 +9,18 @@ import { Lesson } from "../lesson/schema/lesson.schema";
 import { Enrollment } from "./schema/enrollments.schema";
 import { UpdateCourseDto } from "./dto/update-course.dto";
 import { MESSAGE } from "src/constants/constants";
-import { extname } from "path";
-import { v4 as uuidv4 } from 'uuid';
-import * as fs from 'fs';
-import * as path from 'path';
-
+import * as cloudinary from 'cloudinary';
+import * as dotenv from 'dotenv';
+import { ConfigService } from "@nestjs/config";
+dotenv.config();
 @Injectable()
 export class CourseService {
 
     constructor(@InjectModel(Course.name) private courseModel: Model<Course>,
         @InjectModel(User.name) private readonly userTable: Model<User>,
         @InjectModel(Enrollment.name) private readonly enrollmentTable: Model<Enrollment>,
-        @InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>) { }
+        @InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
+        private readonly configService: ConfigService) { }
 
     async createCourse(createCourseDto: CreateCourseDto): Promise<any> {
 
@@ -193,12 +193,21 @@ export class CourseService {
         return { status: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
     }
 
-    async uploadImage(courseId: string, file: Express.Multer.File): Promise<string> {
-        const fileExtName = extname(file.originalname);
-        const fileName = `${uuidv4()}${fileExtName}`;
-        const filePath = path.join(process.cwd() + '/uploads/' + fileName);
-        await fs.promises.writeFile(filePath, file.buffer);
-        await this.courseModel.findByIdAndUpdate(courseId, { image: filePath });
-        return filePath;
+    async uploadImage(courseId: string, file: Express.Multer.File): Promise<any> {
+        // need to upload image in cloudnairy 
+
+        cloudinary.v2.config({
+            cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),
+            api_key: this.configService.get('CLOUDINARY_API_KEY'),
+            api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
+        });
+
+        const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+        // need to upload image in cloudnairy
+        const result = await cloudinary.v2.uploader.upload(dataUrl, {
+            folder: "course",
+        });
+
+        await this.courseModel.findByIdAndUpdate(courseId, { image: result.secure_url });
     }
 }

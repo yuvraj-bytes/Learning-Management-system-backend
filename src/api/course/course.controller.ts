@@ -57,7 +57,8 @@ export class CourseController {
     }
 
     @Post('upload/:courseId')
-    @UseInterceptors(FileInterceptor('image'))
+
+    @UseInterceptors(FileInterceptor('file'))
     async uploadImage(@UploadedFile() file: Express.Multer.File, @Param('courseId') courseId: string) {
         await this.courseService.uploadImage(courseId, file);
         return { message: 'Image uploaded successfully' };
