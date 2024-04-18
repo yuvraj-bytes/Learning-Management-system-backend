@@ -10,6 +10,7 @@ import { MESSAGE } from "src/constants/constants";
 import { SignupOutputDto } from "./dto/signup-output";
 import { NodeMailerService } from "./ node-mailer.service";
 import { randomBytes } from 'crypto';
+
 @Injectable()
 export class AuthService {
     constructor(
@@ -22,6 +23,7 @@ export class AuthService {
         const { email, password, ...rest } = createUserDto;
         if (!createUserDto.first_name || !createUserDto.email || !createUserDto.password) {
             return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.FIELDS_REQUIRED };
+
         }
 
         const existingUser = await this.userModel.findOne({ email });
@@ -29,6 +31,7 @@ export class AuthService {
         if (existingUser) {
             return { status: HttpStatus.FORBIDDEN, message: MESSAGE.USER_ALREADY_EXITS };
         }
+
 
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
