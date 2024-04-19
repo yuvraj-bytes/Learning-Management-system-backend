@@ -22,7 +22,7 @@ export class CourseService {
         @InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
         private readonly configService: ConfigService) { }
 
-    async createCourse(createCourseDto: CreateCourseDto): Promise<any> {
+    async createCourse(createCourseDto: CreateCourseDto, file: Express.Multer.File): Promise<any> {
 
         if (!createCourseDto.title || !createCourseDto.description || !createCourseDto.price) {
             return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.FIELDS_REQUIRED };
@@ -34,6 +34,10 @@ export class CourseService {
         }
 
         const course = await this.courseModel.create({ ...createCourseDto });
+
+        // Upload the image and update the course with the image URL
+        await this.uploadImage(course._id, file);
+
         return { status: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
     }
 

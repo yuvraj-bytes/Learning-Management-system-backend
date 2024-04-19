@@ -24,4 +24,9 @@ export class CreateCourseDto {
     @IsNotEmpty()
     @IsString()
     updated_at: Date;
+
+    @IsNotEmpty()
+    @IsString()
+    image: string;
+    
 }

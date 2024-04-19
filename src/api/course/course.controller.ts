@@ -14,8 +14,9 @@ export class CourseController {
     constructor(private readonly courseService: CourseService) { }
 
     @Post('create')
-    async createCourse(@Body() createCourseDto: CreateCourseDto): Promise<String> {
-        return this.courseService.createCourse(createCourseDto);
+    @UseInterceptors(FileInterceptor('file'))
+    async createCourse(@Body() createCourseDto: CreateCourseDto, @UploadedFile() file: Express.Multer.File): Promise<any> {
+        return this.courseService.createCourse(createCourseDto, file);
     }
 
     @Get('getCourseList/:userId')

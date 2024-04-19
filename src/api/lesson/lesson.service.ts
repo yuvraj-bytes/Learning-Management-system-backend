@@ -7,16 +7,46 @@ import { join } from 'path';
 import { createWriteStream } from 'fs';
 import { extname } from 'path';
 import { CreateLessonDto } from "./dto/create-lesson.dto";
-
+import { ConfigService } from "@nestjs/config";
+import * as cloudinary from 'cloudinary';
+import { MESSAGE } from "src/constants/constants";
 @Injectable()
 export class LessonService {
 
-    constructor(@InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson | any>) { }
+    constructor(@InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson | any>,
+        private readonly configService: ConfigService) { }
 
-    async createLesson(lesson: CreateLessonDto): Promise<Lesson> {
+    async createLesson(lesson: CreateLessonDto, files: any): Promise<any> {
+        const existingLesson = await this.lessonTable.findOne({ title: lesson.title });
+        if (existingLesson) {
+            return { status: HttpStatus.BAD_REQUEST, message: 'Lesson already exists.' };
+        }
+
         const createdLesson = new this.lessonTable(lesson);
-        createdLesson.save();
-        return createdLesson;
+
+        cloudinary.v2.config({
+            cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),
+            api_key: this.configService.get('CLOUDINARY_API_KEY'),
+            api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
+        });
+
+        for (const file of files) {
+            if (file.originalname.endsWith('.mp4')) {
+                const result = await cloudinary.v2.uploader.upload(file.path, {
+                    resource_type: 'video',
+                    folder: 'lesson_video'
+                });
+                createdLesson.video_url = result.secure_url;
+            } else {
+                const result = await cloudinary.v2.uploader.upload(file.path, {
+                    folder: "lesson_thumbnail",
+                });
+                createdLesson.thumbnail = result.secure_url;
+            }
+        }
+        await createdLesson.save();
+
+        return { status: HttpStatus.OK, message: MESSAGE.LESSON_CREATED, createdLesson };
     }
 
     async addVideoLesson(videoFile: Express.Multer.File, id: string): Promise<Lesson> {
