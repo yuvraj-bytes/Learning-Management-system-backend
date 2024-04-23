@@ -12,6 +12,7 @@ import { MESSAGE } from "src/constants/constants";
 import * as cloudinary from 'cloudinary';
 import * as dotenv from 'dotenv';
 import { ConfigService } from "@nestjs/config";
+import { StripeService } from "../auth/ stripe.service";
 dotenv.config();
 @Injectable()
 export class CourseService {
@@ -20,7 +21,9 @@ export class CourseService {
         @InjectModel(User.name) private readonly userTable: Model<User>,
         @InjectModel(Enrollment.name) private readonly enrollmentTable: Model<Enrollment>,
         @InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
-        private readonly configService: ConfigService) { }
+        @InjectModel('Order') private readonly orderTable: Model<any>,
+        private readonly configService: ConfigService,
+        private readonly stripeService: StripeService) { }
 
     async createCourse(createCourseDto: CreateCourseDto, file: Express.Multer.File): Promise<any> {
 
@@ -35,8 +38,30 @@ export class CourseService {
 
         const course = await this.courseModel.create({ ...createCourseDto });
 
-        // Upload the image and update the course with the image URL
         await this.uploadImage(course._id, file);
+
+        const product = await this.stripeService.createProduct({
+            name: createCourseDto.title
+        });
+
+        if (!product) {
+            return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRODUCT_CREATION_FAILED };
+        }
+
+        const price = await this.stripeService.createPrice({
+            currency: 'usd',
+            product: product.id,
+            unit_amount: createCourseDto.price * 100
+        });
+
+        if (!price) {
+            return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRICE_CREATION_FAILED };
+        }
+
+        await this.courseModel.findByIdAndUpdate(course._id, {
+            product_id: product.id,
+            price_id: price.id
+        });
 
         return { status: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
     }
@@ -129,9 +154,30 @@ export class CourseService {
             return { message: 'Course already purchased by this user', statusCode: HttpStatus.BAD_REQUEST };
         }
 
+        if (!course) {
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
+        }
+
+        // const enrollStripe = await this.stripeService.createCustomer(user.email);
+
         const enrollment = await this.enrollmentTable.create({
             user_id: userdata.userId,
-            course_id: course._id.toString()
+            course_id: course._id.toString(),
+            lesson_id: createEnrollment.lesson_id,
+            transaction_id: '',
+            platform: '',
+        });
+
+        const Order = await this.orderTable.create({
+            user_id: userdata.userId,
+            course_id: course._id.toString(),
+            transaction_id: '',
+            amount: course.price,
+            customer_id: '',
+            product_id: course.product_id,
+            price_id: course.price_id,
+            payment_status: '',
+            platform: '',
         });
 
         return { message: MESSAGE.COURSE_ENROLLED, enrollment, statusCode: HttpStatus.OK };
@@ -198,7 +244,6 @@ export class CourseService {
     }
 
     async uploadImage(courseId: string, file: Express.Multer.File): Promise<any> {
-        // need to upload image in cloudnairy 
 
         cloudinary.v2.config({
             cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),

@@ -10,13 +10,16 @@ import { MESSAGE } from "src/constants/constants";
 import { SignupOutputDto } from "./dto/signup-output";
 import { NodeMailerService } from "./ node-mailer.service";
 import { randomBytes } from 'crypto';
+import { StripeService } from "./ stripe.service";
 
 @Injectable()
 export class AuthService {
     constructor(
         @InjectModel(User.name) private userModel: Model<User>,
         private jwtService: JwtService,
-        private readonly nodeMailerService: NodeMailerService) { }
+        private readonly nodeMailerService: NodeMailerService,
+        private readonly stripeService: StripeService
+    ) { }
 
     async signup(createUserDto: UserDto): Promise<User | SignupOutputDto> {
 
@@ -32,10 +35,10 @@ export class AuthService {
             return { status: HttpStatus.FORBIDDEN, message: MESSAGE.USER_ALREADY_EXITS };
         }
 
-
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const createdUser = new this.userModel({ ...rest, email, password: hashedPassword });
+        const customer = await this.stripeService.createCustomer(email);
+        const createdUser = new this.userModel({ ...rest, email, password: hashedPassword, stripeCustomerId: customer.id });
         return createdUser.save();
     }
 

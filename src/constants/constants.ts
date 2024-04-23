@@ -20,5 +20,7 @@ export const MESSAGE = {
     LESSON_CREATED: 'Lesson Created',
     PASSWORD_RESET: 'Password reset successful',
     INVALID_TOKEN: 'Invalid or expired reset token',
-    RESET_PASSWORD_EMAIL_SENT: 'Reset password email sent'
+    RESET_PASSWORD_EMAIL_SENT: 'Reset password email sent',
+    STRIPE_PRODUCT_CREATION_FAILED: 'Stripe product creation failed',
+    STRIPE_PRICE_CREATION_FAILED: 'Stripe price creation failed',
 };

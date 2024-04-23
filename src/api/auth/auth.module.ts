@@ -6,6 +6,7 @@ import { User, UserSchema } from '../users/schema/user.schema';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { NodeMailerService } from './ node-mailer.service';
+import { StripeService } from './ stripe.service';
 
 @Module({
     imports: [
@@ -18,7 +19,7 @@ import { NodeMailerService } from './ node-mailer.service';
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthController, AuthService, JwtStrategy,NodeMailerService],
+    providers: [AuthController, AuthService, JwtStrategy, NodeMailerService, StripeService],
     exports: [AuthService],
 })
 

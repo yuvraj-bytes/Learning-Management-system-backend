@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
 
 @Schema()
-export class Enrollment {
+export class Order {
 
     _id: string;
 
@@ -12,17 +12,20 @@ export class Enrollment {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'courses' })
     course_id: string;
 
-    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'lessons' })
-    lesson_id: string;
-
-    @Prop({ default: false })
-    completed: boolean;
-
-    @Prop({ default: Date.now })
-    enrolled_at: Date;
-
     @Prop({ default: '' })
     transaction_id: string;
+
+    @Prop({ default: 0 })
+    amount: number;
+
+    @Prop({ default: '' })
+    customer_id: string;
+
+    @Prop({ default: '' })
+    product_id: string;
+
+    @Prop({ default: '' })
+    price_id: string;
 
     @Prop({ default: '' })
     payment_status: string;
@@ -37,4 +40,4 @@ export class Enrollment {
     updated_at: Date;
 }
 
-export const EnrollmentsSchema = SchemaFactory.createForClass(Enrollment);
+export const OrderSchema = SchemaFactory.createForClass(Order);

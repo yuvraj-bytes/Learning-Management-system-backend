@@ -35,6 +35,9 @@ export class User {
     @Prop()
     resetTokenExpiration: Date;
 
+    @Prop({ type: 'string', default: '' })
+    stripeCustomerId: string;
+
     @Prop({ default: Date.now })
     created_at: Date;
 
