@@ -1,9 +1,9 @@
 import { IsNumber, IsString } from "class-validator";
 
-export class SignupOutputDto {
+export class ResponseDto {
 
     @IsNumber()
-    status: number;
+    statusCode: number;
 
     @IsString()
     message: string;

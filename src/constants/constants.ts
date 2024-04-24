@@ -23,4 +23,10 @@ export const MESSAGE = {
     RESET_PASSWORD_EMAIL_SENT: 'Reset password email sent',
     STRIPE_PRODUCT_CREATION_FAILED: 'Stripe product creation failed',
     STRIPE_PRICE_CREATION_FAILED: 'Stripe price creation failed',
+    USER_CREATED: 'User created',
+    COURSE_LEFT: 'Course left successfully',
+    IMAGE_UPLOAD_SUCCESS: 'Image uploaded successfully',
+    LESSON_LIST: 'Lesson list',
+    CERTIFICATE_DOWNLOAD: 'Certificate downloaded successfully',
+    LESSON_COMPLETED: 'Lesson completed',
 };

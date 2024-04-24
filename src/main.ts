@@ -4,10 +4,12 @@ import * as dotenv from 'dotenv';
 import { ConfigService } from '@nestjs/config';
 import Joi from 'joi';
 import { portSchema } from './joi-schemas'; 
+import { ValidationPipe } from '@nestjs/common';
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalPipes(new ValidationPipe());
   app.enableCors();
   const configService = app.get<ConfigService>(ConfigService);
 
