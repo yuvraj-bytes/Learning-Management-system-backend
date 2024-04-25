@@ -21,6 +21,9 @@ export class Lesson {
     @Prop({ default: false })
     completed: boolean;
 
+    @Prop({ default: '' })
+    thumbnail: string;
+
     @Prop({ default: Date.now })
     created_at: Date;
 

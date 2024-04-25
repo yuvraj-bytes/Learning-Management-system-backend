@@ -13,12 +13,15 @@ export class CreateLessonDto {
     @IsString()
     course_id: string;
 
-    @IsNotEmpty()
-    @IsString()
-    video_url: string;
+    // @IsNotEmpty()
+    // @IsString()
+    // video_url: string;
 
     @IsBoolean()
     completed: boolean;
+
+    // @IsString()
+    // thumbnail: string;
 
     @IsNotEmpty()
     @IsString()

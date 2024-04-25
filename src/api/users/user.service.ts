@@ -1,54 +1,56 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { Model } from "mongoose";
 import { User } from "./schema/user.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { hash } from "bcrypt";
 import { Enrollment } from "../course/schema/enrollments.schema";
-
+import { UserOutputDto } from "./dto/users-output-dto";
+import { MESSAGE } from "src/constants/constants";
 @Injectable()
 export class UserService {
 
     constructor(@InjectModel(User.name) private userModel: Model<User>,
         @InjectModel(Enrollment.name) private enrollmentModel: Model<Enrollment>) { }
 
-    async getUsers() {
-        const users = this.userModel.find();
+
+    async getUsers(): Promise<UserOutputDto | User> {
+        const users = await this.userModel.find().exec();
         if (!users) {
-            return { message: 'No users found' };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         }
         else {
-            return users;
+            return { status: HttpStatus.OK, message: MESSAGE.USERS_DATA, data: users };
         }
     }
 
-    async getUserById(id: string) {
-        const user = this.userModel.findById(id);
+    async getUserById(id: string): Promise<UserOutputDto> {
+        const user = await this.userModel.findById(id).exec();
         if (!user) {
-            return { message: 'User not found' };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         }
         else {
-            return user;
+            return { status: HttpStatus.OK, message: MESSAGE.USERS_DATA, data: user };
         }
     }
 
-    async updateUser(id: string, updateUserDto: UpdateUserDto) {
+    async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<UserOutputDto> {
         const { password, ...rest } = updateUserDto;
         const hashedPassword = await hash(password, 10);
         const user = await this.userModel.findByIdAndUpdate(id, { ...rest, password: hashedPassword });
         if (!user) {
-            return { message: 'User not found' };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         } else {
-            return { message: 'User updated', user };
+            return { status: HttpStatus.OK, message: MESSAGE.USER_DETAILS_UPDATED, data: user };
         }
     }
 
-    async deleteUser(id: string) {
+    async deleteUser(id: string): Promise<UserOutputDto> {
         const user = await this.userModel.findByIdAndDelete(id);
         if (!user) {
-            return { message: 'User not found' };
+            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         } else {
-            return { message: 'User deleted' };
+            return { status: HttpStatus.OK, message: MESSAGE.USER_DELETED };
         }
     }
 
@@ -56,8 +58,8 @@ export class UserService {
         const users = await this.userModel.findById({ _id: userData.userId });
         const enrolledCourses = await this.enrollmentModel.find({ user_id: id, course_id: course_id });
         return {
-            statusCode: 200,
-            message: 'User found',
+            status: HttpStatus.OK,
+            message: MESSAGE.USERS_DATA,
             isEnrolled: (enrolledCourses.length > 0 ? true : false),
             user: users
         }

@@ -6,7 +6,6 @@ import { RolesGuard } from "../auth/guard/role.guard";
 import { Roles } from "../auth/decorator/roles.decorator";
 import { ROLES } from "src/enum/role.enum";
 import { GetUser } from "./guard/getUser.guard";
-
 @Controller('users')
 export class UserController {
     constructor(private readonly userService: UserService) { }

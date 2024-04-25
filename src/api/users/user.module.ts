@@ -10,7 +10,6 @@ import { Enrollment, EnrollmentsSchema } from "../course/schema/enrollments.sche
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }, { name: Enrollment.name, schema: EnrollmentsSchema }]),
     ],
     controllers: [UserController],
-    // providers: [UserService, ErrorHandlerService, JwtService, UtilService],
     providers: [UserService],
     exports: [UserService],
 })

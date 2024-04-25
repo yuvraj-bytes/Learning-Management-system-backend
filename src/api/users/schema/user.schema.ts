@@ -1,11 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
-import { PrimaryGeneratedColumn } from 'typeorm';
-export type UserDocument = HydratedDocument<User>;
+import * as bcrypt from 'bcrypt';
+import { Document } from 'mongoose';
 
-@Schema()
+export type UserDocument = User & Document;
+@Schema({ timestamps: true })
 export class User {
-
     _id: string;
 
     @Prop()
@@ -29,11 +28,26 @@ export class User {
     @Prop()
     course: string;
 
-    @Prop({ default: Date.now })
-    created_at: Date;
+    @Prop()
+    resetToken: string;
 
-    @Prop({ default: Date.now })
-    updated_at: Date;
+    @Prop()
+    resetTokenExpiration: Date;
+
+    @Prop({ type: 'string', default: '' })
+    stripeCustomerId: string;
+
+    async setPassword(password: string): Promise<void> {
+        this.password = await bcrypt.hash(password, 10);
+    }
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.pre('save', async function (next) {
+    if (this.isModified('password')) {
+        const hashedPassword = await bcrypt.hash(this.password, 10);
+        this.password = hashedPassword;
+    }
+    next();
+});

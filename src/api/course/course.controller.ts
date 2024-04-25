@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Put, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
 import { CreateCourseDto } from "./dto/create-course.dto";
 import { CourseService } from "./course.service";
 import { CreateEnrollmentDto } from "./dto/create-enrollment.dto";
@@ -6,6 +6,7 @@ import { UpdateCourseDto } from "./dto/update-course.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/guard/role.guard";
 import { GetUser } from "../users/guard/getUser.guard";
+import { FileInterceptor } from "@nestjs/platform-express";
 
 @Controller('course')
 export class CourseController {
@@ -13,8 +14,9 @@ export class CourseController {
     constructor(private readonly courseService: CourseService) { }
 
     @Post('create')
-    async createCourse(@Body() createCourseDto: CreateCourseDto): Promise<String> {
-        return this.courseService.createCourse(createCourseDto);
+    @UseInterceptors(FileInterceptor('file'))
+    async createCourse(@Body() createCourseDto: CreateCourseDto, @UploadedFile() file: Express.Multer.File): Promise<any> {
+        return this.courseService.createCourse(createCourseDto, file);
     }
 
     @Get('getCourseList/:userId')
@@ -53,5 +55,12 @@ export class CourseController {
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     async getsearchCourse(@Param('search') search: string, @GetUser() userdata: any) {
         return this.courseService.getsearchCourse(search, userdata);
+    }
+
+    @Post('upload/:courseId')
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadImage(@UploadedFile() file: Express.Multer.File, @Param('courseId') courseId: string) {
+        await this.courseService.uploadImage(courseId, file);
+        return { message: 'Image uploaded successfully' };
     }
 }   

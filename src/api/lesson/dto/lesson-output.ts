@@ -1,14 +1,11 @@
 import { IS_ALPHA, IsString } from "class-validator";
 
-export class LoginOutputDto {
+export class LessonOutputDto {
 
     status: number;
 
     @IsString()
     message: string;
-
-    @IsString()
-    token?: string;
 
     @IsString()
     data?: any;

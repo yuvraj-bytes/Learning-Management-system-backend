@@ -1,20 +1,19 @@
-import { Body, Controller, Get, Header, Headers, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Header, Headers, Param, Post, Res, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LessonService } from "./lesson.service";
 import { Response } from 'express';
-import { FileInterceptor } from "@nestjs/platform-express";
-import { Lesson } from "./schema/lesson.schema";
+import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import { CreateLessonDto } from "./dto/create-lesson.dto";
 import * as path from "path";
 import * as fs from "fs";
 import { AuthGuard } from "@nestjs/passport";
-
 @Controller('lesson')
 export class LessonController {
     constructor(private readonly lessonService: LessonService) { }
 
     @Post('createLesson')
-    async createLesson(@Body() lesson: CreateLessonDto): Promise<Lesson> {
-        return this.lessonService.createLesson(lesson);
+    @UseInterceptors(FilesInterceptor('file'))
+    async createLesson(@Body() lesson: CreateLessonDto, @UploadedFiles() files: any): Promise<any> {
+        return this.lessonService.createLesson(lesson, files);
     }
 
     @Post('addVideoLesson/:id')
