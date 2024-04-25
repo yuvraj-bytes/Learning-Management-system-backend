@@ -32,4 +32,8 @@ export const MESSAGE = {
     INTERNAL_SERVER_ERROR: 'Internal server error',
     EMAIL_SUBJECT: 'Reset Password',
     EMAIL_MESSAGE: 'Click on the link to reset your password:',
+    COURSE_PURCHASED: 'Course purchased successfully',
+    COURSE_ALREADY_PURCHASED: 'Course already purchased by this user',
+    LESSON_ALREADY_EXISTS: 'Lesson already exists.',
+    CERTIFICATE_DOWNLOAD_SUCCESS: 'Certificate downloaded successfully',
 };
