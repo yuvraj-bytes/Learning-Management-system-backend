@@ -38,11 +38,8 @@ export class StripeService {
     }
 
     async createcheckoutSession(priceId: string, userdata: any): Promise<Stripe.Checkout.Session | any> {
-        console.log("🚀 ~ StripeService ~ createcheckoutSession ~ userdata:", userdata)
-        console.log("🚀 ~ StripeService ~ createcheckoutSession ~ priceId:", priceId)
 
         const user = await this.userModel.findOne({ _id: userdata?.userId });
-        console.log("🚀 ~ StripeService ~ createcheckoutSession ~ user:", user)
         return this.stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [

@@ -29,4 +29,7 @@ export const MESSAGE = {
     LESSON_LIST: 'Lesson list',
     CERTIFICATE_DOWNLOAD: 'Certificate downloaded successfully',
     LESSON_COMPLETED: 'Lesson completed',
+    INTERNAL_SERVER_ERROR: 'Internal server error',
+    EMAIL_SUBJECT: 'Reset Password',
+    EMAIL_MESSAGE: 'Click on the link to reset your password:',
 };
