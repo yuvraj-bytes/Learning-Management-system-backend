@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable, Search } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Course } from "./schema/course.schema";
 import { Model } from "mongoose";
@@ -12,8 +12,10 @@ import { MESSAGE } from "src/constants/constants";
 import * as cloudinary from 'cloudinary';
 import * as dotenv from 'dotenv';
 import { ConfigService } from "@nestjs/config";
-import { StripeService } from "../auth/ stripe.service";
-dotenv.config();
+import { StripeService } from "../stripe/ stripe.service";
+import { ResponseDto } from "src/common/dto/response.dto";
+import { Order } from "./schema/order.schema";
+import { UploadImageService } from "src/utills/upload-image";
 @Injectable()
 export class CourseService {
 
@@ -21,31 +23,28 @@ export class CourseService {
         @InjectModel(User.name) private readonly userTable: Model<User>,
         @InjectModel(Enrollment.name) private readonly enrollmentTable: Model<Enrollment>,
         @InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
-        @InjectModel('Order') private readonly orderTable: Model<any>,
+        @InjectModel(Order.name) private readonly orderTable: Model<any>,
         private readonly configService: ConfigService,
-        private readonly stripeService: StripeService) { }
+        private readonly stripeService: StripeService,
+        private readonly uploadImageService: UploadImageService) { }
 
-    async createCourse(createCourseDto: CreateCourseDto, file: Express.Multer.File): Promise<any> {
-
-        if (!createCourseDto.title || !createCourseDto.description || !createCourseDto.price) {
-            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.FIELDS_REQUIRED };
-        }
+    async createCourse(createCourseDto: CreateCourseDto, file: Express.Multer.File): Promise<ResponseDto> {
 
         const courseExists = await this.courseModel.findOne({ title: createCourseDto.title });
         if (courseExists) {
-            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.COURSE_ALREADY_EXISTS };
+            return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.COURSE_ALREADY_EXISTS };
         }
 
-        const course = await this.courseModel.create({ ...createCourseDto });
+        const course = await this.courseModel.create({ createCourseDto });
 
-        await this.uploadImage(course._id, file);
+        await this.uploadImageService.uploadImage(course._id, file);
 
         const product = await this.stripeService.createProduct({
             name: createCourseDto.title
         });
 
         if (!product) {
-            return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRODUCT_CREATION_FAILED };
+            return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRODUCT_CREATION_FAILED };
         }
 
         const price = await this.stripeService.createPrice({
@@ -55,7 +54,7 @@ export class CourseService {
         });
 
         if (!price) {
-            return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRICE_CREATION_FAILED };
+            return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRICE_CREATION_FAILED };
         }
 
         await this.courseModel.findByIdAndUpdate(course._id, {
@@ -63,11 +62,16 @@ export class CourseService {
             price_id: price.id
         });
 
-        return { status: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
+        return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
     }
 
-    async getCourseList(userId: string): Promise<any> {
+    async getCourseList(userId: string): Promise<ResponseDto> {
         const userdata = await this.userTable.findOne({ _id: userId });
+
+        if (!userdata) {
+            return { statusCode: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
+        }
+
         const course = await this.courseModel.aggregate([
             {
                 '$lookup': {
@@ -95,54 +99,83 @@ export class CourseService {
                 }
             }
         ]);
-        if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
-        }
-        return { status: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
+
+        return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
     }
 
-    async getAllCourse(): Promise<any> {
+    async getAllCourse(search: string, userId: any): Promise<ResponseDto> {
+
+        if (userId && search) {
+            const user = await this.userTable.findOne({ _id: userId.userId });
+            const course = await this.courseModel.aggregate([
+                {
+                    '$lookup': {
+                        'from': 'enrollments',
+                        'let': { 'courseId': '$_id' },
+                        'pipeline': [
+                            {
+                                '$match': {
+                                    '$expr': {
+                                        '$and': [
+                                            { '$eq': ['$course_id', '$$courseId'] },
+                                            { '$eq': ['$user_id', user._id] }
+                                        ]
+                                    }
+                                }
+                            }
+                        ],
+                        'as': 'enroll'
+                    }
+                },
+                {
+                    '$unwind': {
+                        'path': '$enroll',
+                        'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
+                    '$match': {
+                        'title': { '$regex': search, '$options': 'i' }
+                    }
+                }
+            ]);
+            return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
+        }
         const course = await this.courseModel.find();
-        if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
-        }
-        return { status: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
+        return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
     }
 
-    async updateCourse(updateCourseDto: UpdateCourseDto): Promise<any> {
-        if (!updateCourseDto._id) {
-            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.REQUIRED_COURSE_ID };
-        }
+    async updateCourse(updateCourseDto: UpdateCourseDto): Promise<ResponseDto> {
 
         const course = await this.courseModel.findOne({ _id: updateCourseDto._id });
         if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
+            return { statusCode: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
         }
 
         const updatedCourse = await this.courseModel.findByIdAndUpdate(course._id, { ...updateCourseDto });
-        return { status: HttpStatus.OK, message: MESSAGE.COURSE_UPDATED };
+        return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_UPDATED, data: updatedCourse };
     }
 
-    async deleteCourse(id: string): Promise<any> {
+    async deleteCourse(id: string): Promise<ResponseDto> {
         if (!id) {
-            return { status: HttpStatus.BAD_REQUEST, message: MESSAGE.REQUIRED_COURSE_ID };
+            return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.REQUIRED_COURSE_ID };
         }
 
         const course = await this.courseModel.findOne({ _id: id });
         if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND }
+            return { statusCode: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND }
         }
 
         await this.courseModel.findByIdAndDelete({ _id: id });
-        return { status: HttpStatus.OK, message: MESSAGE.COURSE_DELETED };
+        return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_DELETED };
     }
 
-    async createEnrollment(createEnrollment: CreateEnrollmentDto, userdata: any): Promise<any> {
+    async createEnrollment(createEnrollment: CreateEnrollmentDto, userdata: any): Promise<ResponseDto> {
         const course = await this.courseModel.findOne({ _id: createEnrollment.course_id });
         const user = await this.userTable.findOne({ _id: userdata.userId });
 
         if (!user) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
+            return { statusCode: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
         }
 
         const enrollmentExists = await this.enrollmentTable.findOne({
@@ -151,11 +184,11 @@ export class CourseService {
         });
 
         if (enrollmentExists) {
-            return { message: 'Course already purchased by this user', statusCode: HttpStatus.BAD_REQUEST };
+            return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.COURSE_ALREADY_PURCHASED };
         }
 
         if (!course) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
+            return { statusCode: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
         }
 
         // const enrollStripe = await this.stripeService.createCustomer(user.email);
@@ -180,83 +213,7 @@ export class CourseService {
             platform: '',
         });
 
-        return { message: MESSAGE.COURSE_ENROLLED, enrollment, statusCode: HttpStatus.OK };
+        return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_PURCHASED, data: { Order, enrollment } };
     }
 
-    async leaveCourse(createEnrollment: CreateEnrollmentDto, userdata: any): Promise<any> {
-        const lesson = await this.lessonTable.findOne({ _id: createEnrollment.lesson_id });
-        const user = await this.userTable.findOne({ _id: userdata.userId });
-
-        if (!lesson) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.LESSON_NOT_FOUND };
-        }
-        if (!user) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.USER_NOT_FOUND };
-        }
-
-        const enrollment = await this.enrollmentTable.findOneAndDelete({
-            user_id: userdata.userId,
-            course_id: lesson.course_id.toString(),
-            lesson_id: lesson._id.toString()
-        });
-
-        return enrollment;
-    }
-
-    async getsearchCourse(search: string, userId: any): Promise<any> {
-        const user = await this.userTable.findOne({ _id: userId.userId });
-        const course = await this.courseModel.aggregate([
-            {
-                '$lookup': {
-                    'from': 'enrollments',
-                    'let': { 'courseId': '$_id' },
-                    'pipeline': [
-                        {
-                            '$match': {
-                                '$expr': {
-                                    '$and': [
-                                        { '$eq': ['$course_id', '$$courseId'] },
-                                        { '$eq': ['$user_id', user._id] }
-                                    ]
-                                }
-                            }
-                        }
-                    ],
-                    'as': 'enroll'
-                }
-            },
-            {
-                '$unwind': {
-                    'path': '$enroll',
-                    'preserveNullAndEmptyArrays': true
-                }
-            },
-            {
-                '$match': {
-                    'title': { '$regex': search, '$options': 'i' }
-                }
-            }
-        ]);
-        if (!course || course.length === 0) {
-            return { status: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
-        }
-        return { status: HttpStatus.OK, message: MESSAGE.COURSE_DATA, data: course };
-    }
-
-    async uploadImage(courseId: string, file: Express.Multer.File): Promise<any> {
-
-        cloudinary.v2.config({
-            cloud_name: this.configService.get('CLOUDINARY_CLOUD_NAME'),
-            api_key: this.configService.get('CLOUDINARY_API_KEY'),
-            api_secret: this.configService.get('CLOUDINARY_API_SECRET'),
-        });
-
-        const dataUrl = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
-        // need to upload image in cloudnairy
-        const result = await cloudinary.v2.uploader.upload(dataUrl, {
-            folder: "course",
-        });
-
-        await this.courseModel.findByIdAndUpdate(courseId, { image: result.secure_url });
-    }
 }
