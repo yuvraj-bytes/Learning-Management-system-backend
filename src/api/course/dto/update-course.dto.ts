@@ -1,30 +1,18 @@
-import { IsNotEmpty, IsString, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class UpdateCourseDto {
 
+    @IsNotEmpty()
     _id: string;
 
-    @IsNotEmpty()
     @IsString()
+    @IsOptional()
     title: string;
 
-    @IsNotEmpty()
     @IsString()
+    @IsOptional()
     description: string;
 
-    @IsNotEmpty()
-    @IsNumber()
+    @IsOptional()
     price: number;
-
-    @IsNotEmpty()
-    @IsString()
-    instructor_id: string;
-
-    @IsNotEmpty()
-    @IsString()
-    created_at: Date;
-
-    @IsNotEmpty()
-    @IsString()
-    updated_at: Date;
 }

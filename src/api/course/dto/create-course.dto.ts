@@ -10,23 +10,10 @@ export class CreateCourseDto {
     description: string;
 
     @IsNotEmpty()
-    @IsNumber()
     price: number;
 
     @IsNotEmpty()
     @IsString()
     instructor_id: string;
 
-    @IsNotEmpty()
-    @IsString()
-    created_at: Date;
-
-    @IsNotEmpty()
-    @IsString()
-    updated_at: Date;
-
-    @IsNotEmpty()
-    @IsString()
-    image: string;
-    
 }
