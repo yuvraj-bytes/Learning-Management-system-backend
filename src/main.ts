@@ -17,7 +17,9 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('LMS APIs')
     .setVersion('1.0')
-    .build();
+    .addBearerAuth()
+    .build()
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
