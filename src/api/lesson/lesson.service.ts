@@ -102,7 +102,6 @@ export class LessonService {
             });
 
             await pdfCreationPromise;
-
             const sendMailPromise = this.emailService.sendEmail(userdata.email, 'Certificate of Completion', pdfFilePath);
             const sendMailResult = await sendMailPromise;
 
