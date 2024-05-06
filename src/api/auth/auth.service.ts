@@ -6,7 +6,6 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from "@nestjs/jwt";
 import { MESSAGE } from "src/constants/constants";
 import { EmailService } from "../../utills/email.service";
-import { randomBytes } from 'crypto';
 import { StripeService } from "../stripe/ stripe.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { ResponseDto } from "src/common/dto/response.dto";
@@ -74,16 +73,20 @@ export class AuthService {
                 return { statusCode: HttpStatus.NOT_FOUND, message: MESSAGE.INVALID_CREDENTIALS };
             }
 
-            const resetToken = randomBytes(20).toString('hex');
-            const resetLink = `http://localhost:3001/reset-password?token=${resetToken}`;
+            const resetToken = await this.jwtService.sign({ id: user.id, email: user.email, role: user.role, username: user.first_name });
+            const resetLink = `http://localhost:3001/reset-password/${resetToken}`;
 
-            await this.userModel.findOneAndUpdate(
-                { forgotPasswordDto: forgotPasswordDto.email },
-                { resetToken, resetTokenExpiration: new Date(Date.now() + Number(this.configService.get('TOKEN_EXPIRY'))), resetLink },
-                { new: true }
+            const email = await this.nodeMailerService.sendEmail(forgotPasswordDto.email, MESSAGE.EMAIL_SUBJECT, `${MESSAGE.EMAIL_MESSAGE}: ${resetLink}`);
+            if (!email) {
+                return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.EMAIL_SENDING_FAILED };
+            }
+            const data = await this.userModel.findOneAndUpdate(
+                { email: forgotPasswordDto.email },
+                {
+                    resetToken: resetToken,
+                    resetTokenExpiration: new Date(Date.now() + Number(this.configService.get('TOKEN_EXPIRY')))
+                }
             );
-
-            await this.nodeMailerService.sendEmail(forgotPasswordDto.email, MESSAGE.EMAIL_SUBJECT, `${MESSAGE.EMAIL_MESSAGE}: ${resetLink}`);
             return { statusCode: HttpStatus.OK, message: MESSAGE.RESET_PASSWORD_EMAIL_SENT };
         }
         catch (error) {
@@ -92,9 +95,14 @@ export class AuthService {
     }
 
     async resetPassword(resetPasswordDto: ResetPasswordDto, resetToken: string): Promise<ResponseDto> {
-
         try {
+            const decodedToken = this.jwtService.decode(resetToken);
+            if (!decodedToken) {
+                return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.INVALID_TOKEN };
+            }
+
             const user = await this.userModel.findOne({
+                email: decodedToken.email,
                 resetToken,
                 resetTokenExpiration: { $gt: new Date() },
             });
@@ -111,8 +119,7 @@ export class AuthService {
             await user.save();
 
             return { statusCode: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
-        }
-        catch (error) {
+        } catch (error) {
             await this.errorHandlerService.HttpException(error);
         }
     }

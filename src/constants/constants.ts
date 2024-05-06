@@ -39,4 +39,5 @@ export const MESSAGE = {
     CERTIFICATE_SENT: 'Certificate sent successfully',
     PDF_GENERATION_FAILED: 'PDF generation failed',
     EMAIL_SEND_FAILED: 'Email send failed',
+    EMAIL_SENDING_FAILED: 'Email sending failed',
 };

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsEmail, Length } from 'class-validator';
+import { IsNotEmpty, IsString, IsEmail, Length, IsStrongPassword } from 'class-validator';
 
 export class CreateUserDto {
     @IsNotEmpty()
@@ -14,6 +14,7 @@ export class CreateUserDto {
 
     @IsNotEmpty()
     @IsString()
+    @IsStrongPassword()
     @Length(6, 50, {
         message: 'Password length Must be minimum 6 characters',
     })
