@@ -1,5 +1,4 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { createReadStream, statSync } from 'fs';
 import { Lesson } from "./schema/lesson.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
@@ -8,11 +7,18 @@ import { ConfigService } from "@nestjs/config";
 import * as cloudinary from 'cloudinary';
 import { MESSAGE } from "src/constants/constants";
 import { ResponseDto } from "src/common/dto/response.dto";
+import * as fs from 'fs';
+import * as PDFDocument from 'pdfkit';
+import { EmailService } from "src/utills/email.service";
+import * as ejs from 'ejs';
+import * as path from 'path';
+import * as pdf from 'html-pdf';
 @Injectable()
 export class LessonService {
 
     constructor(@InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
-        private readonly configService: ConfigService) { }
+        private readonly configService: ConfigService,
+        private readonly emailService: EmailService) { }
 
     async createLesson(lesson: CreateLessonDto, files: any): Promise<ResponseDto> {
         const existingLesson = await this.lessonTable.findOne({ title: lesson.title });
@@ -58,5 +64,54 @@ export class LessonService {
             { completed: true }
         );
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_COMPLETED };
+    }
+
+    async generateCertificate(name: string, userdata: any): Promise<ResponseDto> {
+        try {
+            const certificateTemplate = path.join(process.cwd(), 'src/certificate', this.configService.get('CERTIFICATE_FILE_NAME').toString());
+            const certificateData = await new Promise<string>((resolve, reject) => {
+                ejs.renderFile(certificateTemplate, { name: userdata.username }, (err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data);
+                    }
+                });
+            });
+
+            const pdfOptions = {
+                height: "11.25in",
+                width: "8.5in",
+                header: {
+                    height: "20mm"
+                },
+                footer: {
+                    height: "20mm",
+                },
+            };
+
+            const pdfFilePath = "certificate.pdf";
+            const pdfCreationPromise = new Promise<void>((resolve, reject) => {
+                pdf.create(certificateData, pdfOptions).toFile(pdfFilePath, (err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+
+            await pdfCreationPromise;
+
+            const sendMailPromise = this.emailService.sendEmail(userdata.email, 'Certificate of Completion', pdfFilePath);
+            const sendMailResult = await sendMailPromise;
+
+            if (!sendMailResult) {
+                return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.EMAIL_SEND_FAILED };
+            }
+            return { statusCode: HttpStatus.OK, message: MESSAGE.CERTIFICATE_SENT };
+        } catch (error) {
+            return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.INTERNAL_SERVER_ERROR };
+        }
     }
 }

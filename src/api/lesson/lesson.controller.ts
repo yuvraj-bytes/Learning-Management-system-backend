@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Headers, Param, Post, Res, UploadedFile, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LessonService } from "./lesson.service";
 import { Response } from 'express';
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
@@ -8,6 +8,8 @@ import * as fs from "fs";
 import { AuthGuard } from "@nestjs/passport";
 import { ResponseDto } from "src/common/dto/response.dto";
 import { MESSAGE } from "src/constants/constants";
+import { GetUser } from "../users/guard/getUser.guard";
+import { RolesGuard } from "../auth/guard/role.guard";
 @Controller('lesson')
 export class LessonController {
     constructor(private readonly lessonService: LessonService) { }
@@ -38,7 +40,12 @@ export class LessonController {
         res.setHeader('Content-Disposition', 'attachment; filename=dummy-certificate.pdf');
         const readStream = fs.createReadStream(filePath);
         readStream.pipe(res);
-
         return { statusCode: 200, message: MESSAGE.CERTIFICATE_DOWNLOAD_SUCCESS };
+    }
+
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @Post('generate-certificate')
+    async generateCertificate(@Body() name: string, @GetUser() userdata: any): Promise<ResponseDto> {
+        return this.lessonService.generateCertificate(name, userdata);
     }
 } 
