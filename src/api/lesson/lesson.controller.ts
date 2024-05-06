@@ -3,13 +3,12 @@ import { LessonService } from "./lesson.service";
 import { Response } from 'express';
 import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import { CreateLessonDto } from "./dto/create-lesson.dto";
-import * as path from "path";
-import * as fs from "fs";
 import { AuthGuard } from "@nestjs/passport";
 import { ResponseDto } from "src/common/dto/response.dto";
-import { MESSAGE } from "src/constants/constants";
 import { GetUser } from "../users/guard/getUser.guard";
 import { RolesGuard } from "../auth/guard/role.guard";
+import { ApiTags } from "@nestjs/swagger";
+@ApiTags('lesson')
 @Controller('lesson')
 export class LessonController {
     constructor(private readonly lessonService: LessonService) { }

@@ -1,33 +1,18 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsNotEmpty, IsString } from "class-validator";
-
 export class CreateLessonDto {
+    @ApiProperty()
     @IsNotEmpty()
     @IsString()
     title: string;
 
+    @ApiProperty()
     @IsNotEmpty()
     @IsString()
     content: string;
 
+    @ApiProperty()
     @IsNotEmpty()
     @IsString()
     course_id: string;
-
-    // @IsNotEmpty()
-    // @IsString()
-    // video_url: string;
-
-    @IsBoolean()
-    completed: boolean;
-
-    // @IsString()
-    // thumbnail: string;
-
-    @IsNotEmpty()
-    @IsString()
-    created_at: Date;
-
-    @IsNotEmpty()
-    @IsString()
-    updated_at: Date;
 }
