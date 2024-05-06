@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { ErrorHandlerService } from './error-handler.service';
-
 @Injectable()
 export class EmailService {
     constructor(
@@ -10,7 +9,7 @@ export class EmailService {
         private readonly errorHandlerService: ErrorHandlerService,
     ) { }
 
-    async sendEmail(to: string, subject: string, pdfFileName: any): Promise<any> {
+    async sendEmail(to: string, subject: string, ejsFile: any, pdfFileName?: any): Promise<any> {
 
         try {
             const transporter = await nodemailer.createTransport({
@@ -21,16 +20,20 @@ export class EmailService {
                 }
             });
 
+            let attachments = [];
+            if (pdfFileName) {
+                attachments.push({
+                    filename: pdfFileName,
+                    path: pdfFileName
+                })
+            }
+
             const mailOptions = {
                 from: this.configService.get<string>('SMTP_USER'),
                 to,
                 subject,
-                attachments: [
-                    {
-                        filename: pdfFileName,
-                        path: pdfFileName
-                    }
-                ]
+                html: ejsFile,
+                attachments
             };
 
             return await transporter.sendMail(mailOptions);
