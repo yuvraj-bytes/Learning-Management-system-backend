@@ -66,7 +66,7 @@ export class LessonService {
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_COMPLETED };
     }
 
-    async generateCertificate(name: string, userdata: any): Promise<ResponseDto> {
+    async generateCertificate(userdata: any): Promise<ResponseDto> {
         try {
             const certificateTemplate = path.join(process.cwd(), 'src/certificate', this.configService.get('CERTIFICATE_FILE_NAME').toString());
             const certificateData = await new Promise<string>((resolve, reject) => {

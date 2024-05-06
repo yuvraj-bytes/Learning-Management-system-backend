@@ -31,21 +31,9 @@ export class LessonController {
         return this.lessonService.setLessonCompleted(id);
     }
 
-    @Get('download')
-    async downloadCertificate(@Res() res: Response): Promise<ResponseDto> {
-        const filePath = path.join(process.cwd(), 'assets', 'redis_commands.pdf');
-        const stat = fs.statSync(filePath);
-        res.setHeader('Content-Length', stat.size);
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', 'attachment; filename=dummy-certificate.pdf');
-        const readStream = fs.createReadStream(filePath);
-        readStream.pipe(res);
-        return { statusCode: 200, message: MESSAGE.CERTIFICATE_DOWNLOAD_SUCCESS };
-    }
-
     @UseGuards(AuthGuard('jwt'), RolesGuard)
     @Post('generate-certificate')
-    async generateCertificate(@Body() name: string, @GetUser() userdata: any): Promise<ResponseDto> {
-        return this.lessonService.generateCertificate(name, userdata);
+    async generateCertificate(@GetUser() userdata: any): Promise<ResponseDto> {
+        return this.lessonService.generateCertificate(userdata);
     }
 } 
