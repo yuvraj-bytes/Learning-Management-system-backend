@@ -36,5 +36,8 @@ export const MESSAGE = {
     COURSE_ALREADY_PURCHASED: 'Course already purchased by this user',
     LESSON_ALREADY_EXISTS: 'Lesson already exists.',
     CERTIFICATE_DOWNLOAD_SUCCESS: 'Certificate downloaded successfully',
+    CERTIFICATE_SENT: 'Certificate sent successfully',
+    PDF_GENERATION_FAILED: 'PDF generation failed',
+    EMAIL_SEND_FAILED: 'Email send failed',
     EMAIL_SENDING_FAILED: 'Email sending failed',
 };

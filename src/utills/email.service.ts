@@ -10,7 +10,7 @@ export class EmailService {
         private readonly errorHandlerService: ErrorHandlerService,
     ) { }
 
-    async sendEmail(to: string, subject: string, ejsHtml: string): Promise<any> {
+    async sendEmail(to: string, subject: string, pdfFileName: any): Promise<any> {
 
         try {
             const transporter = await nodemailer.createTransport({
@@ -25,7 +25,12 @@ export class EmailService {
                 from: this.configService.get<string>('SMTP_USER'),
                 to,
                 subject,
-                html: ejsHtml,
+                attachments: [
+                    {
+                        filename: pdfFileName,
+                        path: pdfFileName
+                    }
+                ]
             };
 
             return await transporter.sendMail(mailOptions);

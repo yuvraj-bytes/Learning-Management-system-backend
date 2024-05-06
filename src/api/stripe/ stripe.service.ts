@@ -56,7 +56,6 @@ export class StripeService {
     }
 
     async processWebhookEvent(payload: any): Promise<void> {
-        console.log("🚀 ~ StripeService ~ processWebhookEvent ~ payload:", payload)
         return payload;
         // const webhookEvent = new this.webhookEventModel({
         //     eventType: payload.type,

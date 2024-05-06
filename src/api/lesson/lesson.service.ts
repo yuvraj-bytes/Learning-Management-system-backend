@@ -1,25 +1,29 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { createReadStream, statSync } from 'fs';
 import { Lesson } from "./schema/lesson.schema";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { join } from 'path';
-import { createWriteStream } from 'fs';
-import { extname } from 'path';
 import { CreateLessonDto } from "./dto/create-lesson.dto";
 import { ConfigService } from "@nestjs/config";
 import * as cloudinary from 'cloudinary';
 import { MESSAGE } from "src/constants/constants";
+import { ResponseDto } from "src/common/dto/response.dto";
+import * as fs from 'fs';
+import * as PDFDocument from 'pdfkit';
+import { EmailService } from "src/utills/email.service";
+import * as ejs from 'ejs';
+import * as path from 'path';
+import * as pdf from 'html-pdf';
 @Injectable()
 export class LessonService {
 
-    constructor(@InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson | any>,
-        private readonly configService: ConfigService) { }
+    constructor(@InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
+        private readonly configService: ConfigService,
+        private readonly emailService: EmailService) { }
 
-    async createLesson(lesson: CreateLessonDto, files: any): Promise<any> {
+    async createLesson(lesson: CreateLessonDto, files: any): Promise<ResponseDto> {
         const existingLesson = await this.lessonTable.findOne({ title: lesson.title });
         if (existingLesson) {
-            return { status: HttpStatus.BAD_REQUEST, message: 'Lesson already exists.' };
+            return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.LESSON_ALREADY_EXISTS };
         }
 
         const createdLesson = new this.lessonTable(lesson);
@@ -46,69 +50,68 @@ export class LessonService {
         }
         await createdLesson.save();
 
-        return { status: HttpStatus.OK, message: MESSAGE.LESSON_CREATED, createdLesson };
+        return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_CREATED, data: createdLesson };
     }
 
-    async addVideoLesson(videoFile: Express.Multer.File, id: string): Promise<Lesson> {
-        if (!videoFile || !videoFile.filename) {
-            throw new Error('Video file is missing or filename is not defined.');
-        }
-
-        const allowedExtensions = ['.mp3', '.mp4'];
-        const fileExtension = extname(videoFile.originalname);
-        if (!allowedExtensions.includes(fileExtension)) {
-            throw new Error('Only .mp3 or .mp4 files are allowed.');
-        }
-
-        const videoPath = join(process.cwd(), 'assets', `${videoFile.originalname}`);
-        const writeStream = createWriteStream(videoPath);
-        // writeStream.write(videoFile.buffer);
-        writeStream.end();
-
-        const createdLesson = this.lessonTable.findByIdAndUpdate(
-            id,
-            {
-                video_url: videoFile.path,
-            },
-            { new: false }
-        );
-
-        return createdLesson;
-    }
-
-    async getVideoStream(id: any, headers: any, res: any) {
-        const videoPath = `assets/${id}`;
-        const { size } = statSync(videoPath);
-        const videoRange = headers.range;
-        const parts = videoRange?.replace(/bytes=/, '').split('-');
-        const start = parseInt(parts?.[0], 10) || 0;
-        const end = parts?.[1] ? parseInt(parts[1], 10) : size - 1;
-
-        const chunksize = end - start + 1;
-        const readStreamfile = createReadStream(videoPath, {
-            start,
-            end,
-            highWaterMark: 60,
-        });
-
-        const head = {
-            'Content-Range': `bytes ${start}-${end}/${size}`,
-            'Content-Length': chunksize,
-        };
-        res.writeHead(HttpStatus.PARTIAL_CONTENT, head);
-        readStreamfile.pipe(res);
-    }
-
-    async getAllLessons(course_id: string) {
+    async getAllLessons(course_id: string): Promise<ResponseDto> {
         const filteredCourses = await this.lessonTable.find({ course_id: course_id });
-        return filteredCourses;
+        return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_LIST, data: filteredCourses };
     }
 
-    async setLessonCompleted(id: string): Promise<Lesson> {
+    async setLessonCompleted(id: string): Promise<ResponseDto> {
         const lesson = await this.lessonTable.findByIdAndUpdate(
             id,
             { completed: true }
         );
-        return lesson;
+        return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_COMPLETED };
+    }
+
+    async generateCertificate(userdata: any): Promise<ResponseDto> {
+        try {
+            const certificateTemplate = path.join(process.cwd(), 'src/certificate', this.configService.get('CERTIFICATE_FILE_NAME').toString());
+            const certificateData = await new Promise<string>((resolve, reject) => {
+                ejs.renderFile(certificateTemplate, { name: userdata.username }, (err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(data);
+                    }
+                });
+            });
+
+            const pdfOptions = {
+                height: "11.25in",
+                width: "8.5in",
+                header: {
+                    height: "20mm"
+                },
+                footer: {
+                    height: "20mm",
+                },
+            };
+
+            const pdfFilePath = "certificate.pdf";
+            const pdfCreationPromise = new Promise<void>((resolve, reject) => {
+                pdf.create(certificateData, pdfOptions).toFile(pdfFilePath, (err, data) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+
+            await pdfCreationPromise;
+
+            const sendMailPromise = this.emailService.sendEmail(userdata.email, 'Certificate of Completion', pdfFilePath);
+            const sendMailResult = await sendMailPromise;
+
+            if (!sendMailResult) {
+                return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.EMAIL_SEND_FAILED };
+            }
+            return { statusCode: HttpStatus.OK, message: MESSAGE.CERTIFICATE_SENT };
+        } catch (error) {
+            return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.INTERNAL_SERVER_ERROR };
+        }
     }
 }
