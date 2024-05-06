@@ -8,13 +8,31 @@ import { RolesGuard } from "../auth/guard/role.guard";
 import { GetUser } from "../users/guard/getUser.guard";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ResponseDto } from "src/common/dto/response.dto";
+import { ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
 
+@ApiTags('Course')
 @Controller('course')
 export class CourseController {
 
     constructor(private readonly courseService: CourseService) { }
-
     @Post('create')
+    @ApiConsumes('multipart/form-data')
+    @ApiBody({
+        schema: {
+            type: 'object',
+            properties: {
+                title: { type: 'string' },
+                description: { type: 'string' },
+                price: { type: 'string' },
+                instructor_id: { type: 'string' },
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    })
+
     @UseInterceptors(FileInterceptor('file'))
     async createCourse(@Body() createCourseDto: CreateCourseDto, @UploadedFile() file: Express.Multer.File): Promise<ResponseDto> {
         return this.courseService.createCourse(createCourseDto, file);
@@ -47,4 +65,4 @@ export class CourseController {
     async Enrollments(@Body() createEnrollment: CreateEnrollmentDto, @GetUser() userdata: any): Promise<ResponseDto> {
         return this.courseService.createEnrollment(createEnrollment, userdata);
     }
-}   
+}

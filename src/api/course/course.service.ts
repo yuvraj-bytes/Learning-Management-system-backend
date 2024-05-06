@@ -28,14 +28,22 @@ export class CourseService {
         private readonly stripeService: StripeService,
         private readonly uploadImageService: UploadImageService) { }
 
-    async createCourse(createCourseDto: CreateCourseDto, file: Express.Multer.File): Promise<ResponseDto> {
+    async createCourse(createCourseDto: CreateCourseDto, file: any): Promise<ResponseDto> {
 
         const courseExists = await this.courseModel.findOne({ title: createCourseDto.title });
         if (courseExists) {
             return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.COURSE_ALREADY_EXISTS };
         }
 
-        const course = await this.courseModel.create({ createCourseDto });
+        const course = await this.courseModel.create({
+            title: createCourseDto.title,
+            description: createCourseDto.description,
+            price: createCourseDto.price,
+            instructor_id: createCourseDto.instructor_id,
+            image: '',
+            product_id: '',
+            price_id: ''
+        });
 
         await this.uploadImageService.uploadImage(course._id, file);
 
@@ -57,11 +65,10 @@ export class CourseService {
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRICE_CREATION_FAILED };
         }
 
-        await this.courseModel.findByIdAndUpdate(course._id, {
-            product_id: product.id,
-            price_id: price.id
-        });
+        course.product_id = product.id;
+        course.price_id = price.id;
 
+        await course.save();
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
     }
 
