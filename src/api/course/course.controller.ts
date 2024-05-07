@@ -9,9 +9,10 @@ import { GetUser } from "../users/guard/getUser.guard";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ResponseDto } from "src/common/dto/response.dto";
 import { ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
-
+import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
 @ApiTags('Course')
 @Controller('course')
+@Throttle({ default: { limit: 3, ttl: 60000 } })
 export class CourseController {
 
     constructor(private readonly courseService: CourseService) { }
@@ -45,7 +46,7 @@ export class CourseController {
     }
 
     @Get('getAllCourse')
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    @UseGuards(AuthGuard('jwt'), RolesGuard, ThrottlerGuard)
     async getAllCourse(@Body('search') search: string, @GetUser() userdata: any): Promise<ResponseDto> {
         return this.courseService.getAllCourse(search, userdata);
     }

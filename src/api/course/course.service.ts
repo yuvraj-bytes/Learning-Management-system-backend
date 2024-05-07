@@ -9,8 +9,6 @@ import { Lesson } from "../lesson/schema/lesson.schema";
 import { Enrollment } from "./schema/enrollments.schema";
 import { UpdateCourseDto } from "./dto/update-course.dto";
 import { MESSAGE } from "src/constants/constants";
-import * as cloudinary from 'cloudinary';
-import * as dotenv from 'dotenv';
 import { ConfigService } from "@nestjs/config";
 import { StripeService } from "../stripe/ stripe.service";
 import { ResponseDto } from "src/common/dto/response.dto";
