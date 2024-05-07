@@ -22,10 +22,10 @@ export class CourseController {
         schema: {
             type: 'object',
             properties: {
-                title: { type: 'string' },
-                description: { type: 'string' },
-                price: { type: 'string' },
-                instructor_id: { type: 'string' },
+                title: { type: 'string', default: 'Node.js' },
+                description: { type: 'string', default: 'Node.js Course Description' },
+                price: { type: 'string', default: '100' },
+                instructor_id: { type: 'string', default: '66290909907062cb4f5c77e7' },
                 file: {
                     type: 'string',
                     format: 'binary',

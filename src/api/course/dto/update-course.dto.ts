@@ -1,23 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
 
 export class UpdateCourseDto {
 
-    @ApiProperty()
-    @IsNotEmpty()
+    @ApiProperty({
+        default: '6638c5798ab49e9ec5e1858a',
+    })
+    @IsNotEmpty({})
     _id: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        default: 'Course Title',
+    })
     @IsString()
     @IsOptional()
     title: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        default: 'Course Description',
+    })
     @IsString()
     @IsOptional()
     description: string;
 
-    @ApiProperty()
+    @ApiProperty({
+        default: 100,
+    })
     @IsOptional()
     price: number;
 }

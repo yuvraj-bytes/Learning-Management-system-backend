@@ -7,6 +7,8 @@ import { Roles } from "../auth/decorator/roles.decorator";
 import { ROLES } from "src/enum/role.enum";
 import { GetUser } from "./guard/getUser.guard";
 import { Throttle } from "@nestjs/throttler";
+import { ApiTags } from "@nestjs/swagger";
+@ApiTags('users')
 @Controller('users')
 @Throttle({ default: { limit: 3, ttl: 60000 } })
 
