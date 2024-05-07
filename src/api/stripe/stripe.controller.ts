@@ -3,7 +3,8 @@ import { StripeService } from './ stripe.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../users/guard/getUser.guard';
 import { RolesGuard } from '../auth/guard/role.guard';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('stripe')
 @Controller('stripe')
 export class StripeController {
     constructor(private readonly stripeService: StripeService) { }

@@ -1,15 +1,16 @@
 import { Body, Controller, Get, Param, Post, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LessonService } from "./lesson.service";
-import { Response } from 'express';
-import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
+import {  FilesInterceptor } from "@nestjs/platform-express";
 import { CreateLessonDto } from "./dto/create-lesson.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { ResponseDto } from "src/common/dto/response.dto";
 import { GetUser } from "../users/guard/getUser.guard";
 import { RolesGuard } from "../auth/guard/role.guard";
 import { ApiTags } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 @ApiTags('lesson')
 @Controller('lesson')
+@Throttle({ default: { limit: 3, ttl: 60000 } })
 export class LessonController {
     constructor(private readonly lessonService: LessonService) { }
 

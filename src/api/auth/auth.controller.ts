@@ -6,8 +6,10 @@ import { LoginDto } from "./dto/login.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ApiTags, ApiHeader } from "@nestjs/swagger";
+import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
 @ApiTags('auth')
 @Controller('auth')
+@Throttle({ default: { limit: 3, ttl: 60000 } })
 export class AuthController {
 
     constructor(private readonly authService: AuthService
@@ -24,6 +26,7 @@ export class AuthController {
     }
 
     @Post('forgot-password')
+    @UseGuards(ThrottlerGuard)
     async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<ResponseDto> {
         return await this.authService.forgotPassword(forgotPasswordDto);
     }
