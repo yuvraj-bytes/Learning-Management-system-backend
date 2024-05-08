@@ -14,8 +14,8 @@ import { StripeService } from "../stripe/ stripe.service";
 import { ResponseDto } from "src/common/dto/response.dto";
 import { Order } from "./schema/order.schema";
 import { UploadImageService } from "src/utills/upload-image";
-import { NotificationService } from "../notification/notification.service";
-import { NotificationType } from "../notification/dto/create-notification";
+import { NotificationType, NotificationService } from "src/utills/notification.service";
+import { Notification } from "../notification/schema/notificcation.schema";
 @Injectable()
 export class CourseService {
 
@@ -24,6 +24,7 @@ export class CourseService {
         @InjectModel(Enrollment.name) private readonly enrollmentTable: Model<Enrollment>,
         @InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
         @InjectModel(Order.name) private readonly orderTable: Model<Order>,
+        @InjectModel(Notification.name) private readonly notificationTable: Model<Notification>,
         private readonly configService: ConfigService,
         private readonly stripeService: StripeService,
         private readonly uploadImageService: UploadImageService,
@@ -47,7 +48,7 @@ export class CourseService {
                 price_id: ''
             });
 
-            await this.uploadImageService.uploadImage(course._id, file);
+            // await this.uploadImageService.uploadImage(course._id, file);
 
             const product = await this.stripeService.createProduct({
                 name: createCourseDto.title
@@ -71,20 +72,14 @@ export class CourseService {
             course.price_id = price.id;
 
             await course.save();
-            await this.notificationService.create({
-                title: MESSAGE.COURSE_CREATED,
-                content: MESSAGE.COURSE_CREATED_CONTENT(createCourseDto.title),
-                type: NotificationType.INFO,
-            });
+            const data = await this.notificationService.sendNotification(MESSAGE.COURSE_CREATED, MESSAGE.COURSE_CREATED_CONTENT(createCourseDto.title), NotificationType.INFO);
+
+            await this.notificationTable.create(data);
             return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
         }
 
         catch (error) {
-            await this.notificationService.create({
-                title: MESSAGE.COURSE_CREATION_FAILED,
-                content: MESSAGE.COURSE_CREATION_FAILED_MSG(error.message),
-                type: NotificationType.ERROR,
-            });
+            await this.notificationService.sendNotification(MESSAGE.COURSE_CREATION_FAILED, MESSAGE.COURSE_CREATION_FAILED_MSG(error.message), NotificationType.ERROR);
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: error.message };
         }
     }
@@ -178,19 +173,11 @@ export class CourseService {
 
         const updatedCourse = await this.courseModel.findByIdAndUpdate(course._id, { ...updateCourseDto });
         if (!updatedCourse) {
-            await this.notificationService.create({
-                title: MESSAGE.COURSE_CREATION_FAILED,
-                content: MESSAGE.COURSE_UPDATION_FAILED(course.title),
-                type: NotificationType.ERROR,
-            });
+            await this.notificationService.sendNotification(MESSAGE.COURSE_CREATION_FAILED, MESSAGE.COURSE_UPDATION_FAILED(course.title), NotificationType.ERROR);
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.COURSE_UPDATE_FAILED };
         }
 
-        await this.notificationService.create({
-            title: MESSAGE.COURSE_UPDATED,
-            content: MESSAGE.COURSE_UPDATED_MSG(course.title),
-            type: NotificationType.INFO,
-        });
+        await this.notificationService.sendNotification(MESSAGE.COURSE_UPDATED, MESSAGE.COURSE_UPDATED_MSG(course.title), NotificationType.INFO);
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_UPDATED, data: updatedCourse };
     }
 
@@ -249,11 +236,7 @@ export class CourseService {
             platform: '',
         });
 
-        await this.notificationService.create({
-            title: MESSAGE.COURSE_ENROLLED,
-            content: MESSAGE.COURSE_ENROLLED_CONTENT(course.title),
-            type: NotificationType.INFO,
-        });
+        await this.notificationService.sendNotification(MESSAGE.COURSE_ENROLLED, MESSAGE.COURSE_ENROLLED_CONTENT(course.title), NotificationType.INFO);
 
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_PURCHASED, data: { Order, enrollment } };
     }

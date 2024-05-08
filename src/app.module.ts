@@ -6,7 +6,7 @@ import { UserModule } from './api/users/user.module';
 import { CourseModule } from './api/course/course.module';
 import { LessonModule } from './api/lesson/lesson.module';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { NotificationModule } from './api/notification/notification.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -22,7 +22,6 @@ import { NotificationModule } from './api/notification/notification.module';
     UserModule,
     CourseModule,
     LessonModule,
-    NotificationModule
   ],
   //   providers: [
   //     {
@@ -31,6 +30,4 @@ import { NotificationModule } from './api/notification/notification.module';
   //     },
   //  ]
 })
-
-
 export class AppModule { }

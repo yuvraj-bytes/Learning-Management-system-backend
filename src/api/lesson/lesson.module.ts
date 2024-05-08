@@ -7,17 +7,20 @@ import { MulterModule } from "@nestjs/platform-express";
 import { Course, CourseSchema } from "../course/schema/course.schema";
 import { EmailService } from "src/utills/email.service";
 import { ErrorHandlerService } from "src/utills/error-handler.service";
-import { NotificationModule } from "../notification/notification.module";
+import { NotificationService } from "src/utills/notification.service";
+import { Notification, NotificationSchema } from "../notification/schema/notificcation.schema";
 @Module({
     imports: [
-        MongooseModule.forFeature([{ name: Lesson.name, schema: LessonSchema }, { name: Course.name, schema: CourseSchema }]),
+        MongooseModule.forFeature([{ name: Lesson.name, schema: LessonSchema }, { name: Course.name, schema: CourseSchema }, {
+            name: Notification.name, schema: NotificationSchema
+        }]),
         MulterModule.register({
             dest: './assets'
-        }),
-        NotificationModule
+        })
+
     ],
     controllers: [LessonController],
-    providers: [LessonService, EmailService, ErrorHandlerService],
+    providers: [LessonService, EmailService, ErrorHandlerService, NotificationService],
     exports: [LessonService],
 })
 

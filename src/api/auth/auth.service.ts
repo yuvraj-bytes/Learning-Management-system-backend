@@ -14,8 +14,7 @@ import { ConfigService } from "@nestjs/config";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ErrorHandlerService } from "src/utills/error-handler.service";
-import { NotificationService } from "../notification/notification.service";
-import { NotificationType } from "../notification/dto/create-notification";
+import { NotificationType, NotificationService } from "src/utills/notification.service";
 @Injectable()
 export class AuthService {
     constructor(
@@ -122,11 +121,9 @@ export class AuthService {
             user.resetTokenExpiration = null;
             await user.save();
 
-            await this.notificationService.create({
-                title: MESSAGE.PASSWORD_RESET,
-                content: MESSAGE.PASSWORD_RESET_CONTENT,
-                type: NotificationType.INFO,
-            });
+            const data = this.notificationService.sendNotification(MESSAGE.PASSWORD_RESET, MESSAGE.PASSWORD_RESET_CONTENT, NotificationType.INFO);
+
+            console.log(data)
             return { statusCode: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
         } catch (error) {
             await this.errorHandlerService.HttpException(error);

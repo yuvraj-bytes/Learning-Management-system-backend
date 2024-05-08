@@ -11,8 +11,8 @@ import { EmailService } from "src/utills/email.service";
 import * as ejs from 'ejs';
 import * as path from 'path';
 import * as pdf from 'html-pdf';
-import { NotificationService } from "../notification/notification.service";
-import { NotificationType } from "../notification/dto/create-notification";
+import { NotificationType, NotificationService } from "src/utills/notification.service";
+
 @Injectable()
 export class LessonService {
 
@@ -52,11 +52,7 @@ export class LessonService {
 
         await createdLesson.save();
 
-        await this.notificationService.create({
-            title: MESSAGE.LESSON_CREATED,
-            content: MESSAGE.LESSON_CREATED_MSG(lesson.title),
-            type: NotificationType.INFO,
-        });
+        await this.notificationService.sendNotification(MESSAGE.LESSON_CREATED, MESSAGE.LESSON_CREATED_MSG(lesson.title), NotificationType.INFO);
 
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_CREATED, data: createdLesson };
     }
@@ -117,11 +113,7 @@ export class LessonService {
                 return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.EMAIL_SEND_FAILED };
             }
 
-            await this.notificationService.create({
-                title: MESSAGE.COURSE_COMPLITION,
-                content: MESSAGE.CERTIFICATE_SENT_MSG(userdata.email),
-                type: NotificationType.INFO,
-            });
+            await this.notificationService.sendNotification(MESSAGE.COURSE_COMPLITION, MESSAGE.CERTIFICATE_SENT_MSG(userdata.email), NotificationType.INFO);
             return { statusCode: HttpStatus.OK, message: MESSAGE.CERTIFICATE_SENT };
         } catch (error) {
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.INTERNAL_SERVER_ERROR };
