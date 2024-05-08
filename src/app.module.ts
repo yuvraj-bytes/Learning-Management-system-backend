@@ -5,8 +5,8 @@ import { AuthModule } from './api/auth/auth.module';
 import { UserModule } from './api/users/user.module';
 import { CourseModule } from './api/course/course.module';
 import { LessonModule } from './api/lesson/lesson.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { NotificationModule } from './api/notification/notification.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -21,7 +21,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     AuthModule,
     UserModule,
     CourseModule,
-    LessonModule
+    LessonModule,
+    NotificationModule
   ],
   //   providers: [
   //     {

@@ -14,6 +14,7 @@ import { ConfigService } from "@nestjs/config";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ErrorHandlerService } from "src/utills/error-handler.service";
+import { NotificationService } from "../notification/notification.service";
 @Injectable()
 export class AuthService {
     constructor(
@@ -23,6 +24,7 @@ export class AuthService {
         private readonly stripeService: StripeService,
         private readonly configService: ConfigService,
         private readonly errorHandlerService: ErrorHandlerService,
+        private readonly notificationService: NotificationService
     ) { }
 
     async signup(createUserDto: CreateUserDto): Promise<ResponseDto> {
@@ -63,7 +65,7 @@ export class AuthService {
         }
     }
 
-    async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<ResponseDto | any> {
+    async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<ResponseDto> {
 
         try {
 
@@ -87,6 +89,7 @@ export class AuthService {
                     resetTokenExpiration: new Date(Date.now() + Number(this.configService.get('TOKEN_EXPIRY')))
                 }
             );
+
             return { statusCode: HttpStatus.OK, message: MESSAGE.RESET_PASSWORD_EMAIL_SENT };
         }
         catch (error) {
@@ -118,6 +121,11 @@ export class AuthService {
             user.resetTokenExpiration = null;
             await user.save();
 
+            await this.notificationService.create({
+                title: 'Password Reset Successfully',
+                content: `Your password has been reset successfully`,
+                type: 'info',
+            });
             return { statusCode: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
         } catch (error) {
             await this.errorHandlerService.HttpException(error);

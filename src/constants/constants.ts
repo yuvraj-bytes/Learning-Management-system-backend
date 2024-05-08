@@ -40,4 +40,5 @@ export const MESSAGE = {
     PDF_GENERATION_FAILED: 'PDF generation failed',
     EMAIL_SEND_FAILED: 'Email send failed',
     EMAIL_SENDING_FAILED: 'Email sending failed',
+    COURSE_UPDATE_FAILED: 'Course update failed',
 };

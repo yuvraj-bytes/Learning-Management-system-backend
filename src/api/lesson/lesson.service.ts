@@ -7,18 +7,18 @@ import { ConfigService } from "@nestjs/config";
 import * as cloudinary from 'cloudinary';
 import { MESSAGE } from "src/constants/constants";
 import { ResponseDto } from "src/common/dto/response.dto";
-import * as fs from 'fs';
-import * as PDFDocument from 'pdfkit';
 import { EmailService } from "src/utills/email.service";
 import * as ejs from 'ejs';
 import * as path from 'path';
 import * as pdf from 'html-pdf';
+import { NotificationService } from "../notification/notification.service";
 @Injectable()
 export class LessonService {
 
     constructor(@InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
         private readonly configService: ConfigService,
-        private readonly emailService: EmailService) { }
+        private readonly emailService: EmailService,
+        private readonly notificationService: NotificationService) { }
 
     async createLesson(lesson: CreateLessonDto, files: any): Promise<ResponseDto> {
         const existingLesson = await this.lessonTable.findOne({ title: lesson.title });
@@ -48,7 +48,14 @@ export class LessonService {
                 createdLesson.thumbnail = result.secure_url;
             }
         }
+
         await createdLesson.save();
+        const createNotification = {
+            title: 'New Lesson Created',
+            content: `A new lesson ${lesson.title} has been created`,
+            type: 'info',
+        }
+        await this.notificationService.create(createNotification);
 
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_CREATED, data: createdLesson };
     }
@@ -63,6 +70,11 @@ export class LessonService {
             id,
             { completed: true }
         );
+        await this.notificationService.create({
+            title: 'Lesson Completed',
+            content: `Lesson ${lesson.title} has been completed`,
+            type: 'info',
+        });
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_COMPLETED };
     }
 
@@ -108,6 +120,11 @@ export class LessonService {
             if (!sendMailResult) {
                 return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.EMAIL_SEND_FAILED };
             }
+            await this.notificationService.create({
+                title: 'Congratulations for Completing the Course',
+                content: `Certificate has been sent to ${userdata.email} successfully`,
+                type: 'info',
+            });
             return { statusCode: HttpStatus.OK, message: MESSAGE.CERTIFICATE_SENT };
         } catch (error) {
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.INTERNAL_SERVER_ERROR };

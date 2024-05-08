@@ -10,6 +10,7 @@ import { StripeModule } from '../stripe/stripe.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ErrorHandlerService } from 'src/utills/error-handler.service';
 import { EmailService } from 'src/utills/email.service';
+import { NotificationModule } from '../notification/notification.module';
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
@@ -23,7 +24,8 @@ import { EmailService } from 'src/utills/email.service';
             }),
             inject: [ConfigService]
         }),
-        StripeModule
+        StripeModule,
+        NotificationModule
     ],
     controllers: [AuthController],
     providers: [AuthController, AuthService, JwtStrategy, EmailService, StripeService, ErrorHandlerService],

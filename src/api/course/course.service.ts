@@ -14,6 +14,7 @@ import { StripeService } from "../stripe/ stripe.service";
 import { ResponseDto } from "src/common/dto/response.dto";
 import { Order } from "./schema/order.schema";
 import { UploadImageService } from "src/utills/upload-image";
+import { NotificationService } from "../notification/notification.service";
 @Injectable()
 export class CourseService {
 
@@ -24,50 +25,66 @@ export class CourseService {
         @InjectModel(Order.name) private readonly orderTable: Model<any>,
         private readonly configService: ConfigService,
         private readonly stripeService: StripeService,
-        private readonly uploadImageService: UploadImageService) { }
+        private readonly uploadImageService: UploadImageService,
+        private readonly notificationService: NotificationService) { }
 
     async createCourse(createCourseDto: CreateCourseDto, file: any): Promise<ResponseDto> {
 
-        const courseExists = await this.courseModel.findOne({ title: createCourseDto.title });
-        if (courseExists) {
-            return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.COURSE_ALREADY_EXISTS };
+        try {
+            const courseExists = await this.courseModel.findOne({ title: createCourseDto.title });
+            if (courseExists) {
+                return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.COURSE_ALREADY_EXISTS };
+            }
+
+            const course = await this.courseModel.create({
+                title: createCourseDto.title,
+                description: createCourseDto.description,
+                price: createCourseDto.price,
+                instructor_id: createCourseDto.instructor_id,
+                image: '',
+                product_id: '',
+                price_id: ''
+            });
+
+            await this.uploadImageService.uploadImage(course._id, file);
+
+            const product = await this.stripeService.createProduct({
+                name: createCourseDto.title
+            });
+
+            if (!product) {
+                return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRODUCT_CREATION_FAILED };
+            }
+
+            const price = await this.stripeService.createPrice({
+                currency: 'usd',
+                product: product.id,
+                unit_amount: createCourseDto.price * 100
+            });
+
+            if (!price) {
+                return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRICE_CREATION_FAILED };
+            }
+
+            course.product_id = product.id;
+            course.price_id = price.id;
+
+            await course.save();
+            await this.notificationService.create({
+                title: 'New Course Created',
+                content: `A new course ${createCourseDto.title} has been created`,
+                type: 'info',
+            });
+            return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
         }
-
-        const course = await this.courseModel.create({
-            title: createCourseDto.title,
-            description: createCourseDto.description,
-            price: createCourseDto.price,
-            instructor_id: createCourseDto.instructor_id,
-            image: '',
-            product_id: '',
-            price_id: ''
-        });
-
-        await this.uploadImageService.uploadImage(course._id, file);
-
-        const product = await this.stripeService.createProduct({
-            name: createCourseDto.title
-        });
-
-        if (!product) {
-            return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRODUCT_CREATION_FAILED };
+        catch (error) {
+            await this.notificationService.create({
+                title: 'Course Creation Failed',
+                content: `Course creation failed due to ${error.message}`,
+                type: 'error',
+            });
+            return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: error.message };
         }
-
-        const price = await this.stripeService.createPrice({
-            currency: 'usd',
-            product: product.id,
-            unit_amount: createCourseDto.price * 100
-        });
-
-        if (!price) {
-            return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.STRIPE_PRICE_CREATION_FAILED };
-        }
-
-        course.product_id = product.id;
-        course.price_id = price.id;
-
-        await course.save();
-        return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
     }
 
     async getCourseList(userId: string): Promise<ResponseDto> {
@@ -158,6 +175,20 @@ export class CourseService {
         }
 
         const updatedCourse = await this.courseModel.findByIdAndUpdate(course._id, { ...updateCourseDto });
+        if (!updatedCourse) {
+            await this.notificationService.create({
+                title: 'Course Update Failed',
+                content: `Course update failed for ${course.title}`,
+                type: 'error',
+            });
+            return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.COURSE_UPDATE_FAILED };
+        }
+
+        await this.notificationService.create({
+            title: 'Course Updated',
+            content: `Course ${course.title} has been updated`,
+            type: 'info',
+        });
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_UPDATED, data: updatedCourse };
     }
 
@@ -196,8 +227,6 @@ export class CourseService {
             return { statusCode: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND };
         }
 
-        // const enrollStripe = await this.stripeService.createCustomer(user.email);
-
         const enrollment = await this.enrollmentTable.create({
             user_id: userdata.userId,
             course_id: course._id.toString(),
@@ -218,7 +247,12 @@ export class CourseService {
             platform: '',
         });
 
+        await this.notificationService.create({
+            title: 'Course Enrolled Successfully',
+            content: `You have enrolled in ${course.title} course. Happy Learning!`,
+            type: 'info',
+        });
+
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_PURCHASED, data: { Order, enrollment } };
     }
-
 }
