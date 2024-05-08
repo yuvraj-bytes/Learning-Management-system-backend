@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsIn } from 'class-validator';
 
+export enum NotificationType {
+    INFO = 'info',
+    WARNING = 'warning',
+    ERROR = 'error',
+}
 export class CreateNotificationDto {
     @ApiProperty({
         default: 'Notification title',
@@ -20,6 +25,6 @@ export class CreateNotificationDto {
         default: 'info',
     })
     @IsNotEmpty()
-    @IsIn(['info', 'warning', 'error'])
-    type: string;
+    @IsIn([NotificationType.INFO, NotificationType.WARNING, NotificationType.ERROR])
+    type: NotificationType;
 }

@@ -15,6 +15,7 @@ import { ResponseDto } from "src/common/dto/response.dto";
 import { Order } from "./schema/order.schema";
 import { UploadImageService } from "src/utills/upload-image";
 import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "../notification/dto/create-notification";
 @Injectable()
 export class CourseService {
 
@@ -22,7 +23,7 @@ export class CourseService {
         @InjectModel(User.name) private readonly userTable: Model<User>,
         @InjectModel(Enrollment.name) private readonly enrollmentTable: Model<Enrollment>,
         @InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
-        @InjectModel(Order.name) private readonly orderTable: Model<any>,
+        @InjectModel(Order.name) private readonly orderTable: Model<Order>,
         private readonly configService: ConfigService,
         private readonly stripeService: StripeService,
         private readonly uploadImageService: UploadImageService,
@@ -71,17 +72,18 @@ export class CourseService {
 
             await course.save();
             await this.notificationService.create({
-                title: 'New Course Created',
-                content: `A new course ${createCourseDto.title} has been created`,
-                type: 'info',
+                title: MESSAGE.COURSE_CREATED,
+                content: MESSAGE.COURSE_CREATED_CONTENT(createCourseDto.title),
+                type: NotificationType.INFO,
             });
             return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
         }
+
         catch (error) {
             await this.notificationService.create({
-                title: 'Course Creation Failed',
-                content: `Course creation failed due to ${error.message}`,
-                type: 'error',
+                title: MESSAGE.COURSE_CREATION_FAILED,
+                content: MESSAGE.COURSE_CREATION_FAILED_MSG(error.message),
+                type: NotificationType.ERROR,
             });
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: error.message };
         }
@@ -177,17 +179,17 @@ export class CourseService {
         const updatedCourse = await this.courseModel.findByIdAndUpdate(course._id, { ...updateCourseDto });
         if (!updatedCourse) {
             await this.notificationService.create({
-                title: 'Course Update Failed',
-                content: `Course update failed for ${course.title}`,
-                type: 'error',
+                title: MESSAGE.COURSE_CREATION_FAILED,
+                content: MESSAGE.COURSE_UPDATION_FAILED(course.title),
+                type: NotificationType.ERROR,
             });
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.COURSE_UPDATE_FAILED };
         }
 
         await this.notificationService.create({
-            title: 'Course Updated',
-            content: `Course ${course.title} has been updated`,
-            type: 'info',
+            title: MESSAGE.COURSE_UPDATED,
+            content: MESSAGE.COURSE_UPDATED_MSG(course.title),
+            type: NotificationType.INFO,
         });
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_UPDATED, data: updatedCourse };
     }
@@ -248,9 +250,9 @@ export class CourseService {
         });
 
         await this.notificationService.create({
-            title: 'Course Enrolled Successfully',
-            content: `You have enrolled in ${course.title} course. Happy Learning!`,
-            type: 'info',
+            title: MESSAGE.COURSE_ENROLLED,
+            content: MESSAGE.COURSE_ENROLLED_CONTENT(course.title),
+            type: NotificationType.INFO,
         });
 
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_PURCHASED, data: { Order, enrollment } };

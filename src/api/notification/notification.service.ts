@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { CreateNotificationDto } from "./dto/create-notification";
 import { Notification } from "./schema/notificcation.schema";
 import { ResponseDto } from "src/common/dto/response.dto";
+import { MESSAGE } from "src/constants/constants";
 
 @Injectable()
 export class NotificationService {
@@ -15,11 +16,11 @@ export class NotificationService {
     async create(createNotificationDto: CreateNotificationDto): Promise<ResponseDto> {
         const createdNotification = new this.notificationModel(createNotificationDto);
         createdNotification.save();
-        return { statusCode: 200, message: 'Notification created successfully' }
+        return { statusCode: HttpStatus.OK, message: MESSAGE.NOTIFICATION_CREATED }
     }
 
     async findAll(): Promise<ResponseDto> {
         const notification = await this.notificationModel.find().exec();
-        return { statusCode: 200, message: 'All notifications fetched successfully', data: notification }
+        return { statusCode: HttpStatus.OK, message: MESSAGE.NOTIFCATION_LIST, data: notification }
     }
 }

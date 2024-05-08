@@ -15,6 +15,7 @@ import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ErrorHandlerService } from "src/utills/error-handler.service";
 import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "../notification/dto/create-notification";
 @Injectable()
 export class AuthService {
     constructor(
@@ -122,9 +123,9 @@ export class AuthService {
             await user.save();
 
             await this.notificationService.create({
-                title: 'Password Reset Successfully',
-                content: `Your password has been reset successfully`,
-                type: 'info',
+                title: MESSAGE.PASSWORD_RESET,
+                content: MESSAGE.PASSWORD_RESET_CONTENT,
+                type: NotificationType.INFO,
             });
             return { statusCode: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
         } catch (error) {

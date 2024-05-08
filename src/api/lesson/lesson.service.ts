@@ -12,6 +12,7 @@ import * as ejs from 'ejs';
 import * as path from 'path';
 import * as pdf from 'html-pdf';
 import { NotificationService } from "../notification/notification.service";
+import { NotificationType } from "../notification/dto/create-notification";
 @Injectable()
 export class LessonService {
 
@@ -50,12 +51,12 @@ export class LessonService {
         }
 
         await createdLesson.save();
-        const createNotification = {
-            title: 'New Lesson Created',
-            content: `A new lesson ${lesson.title} has been created`,
-            type: 'info',
-        }
-        await this.notificationService.create(createNotification);
+
+        await this.notificationService.create({
+            title: MESSAGE.LESSON_CREATED,
+            content: MESSAGE.LESSON_CREATED_MSG(lesson.title),
+            type: NotificationType.INFO,
+        });
 
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_CREATED, data: createdLesson };
     }
@@ -70,11 +71,6 @@ export class LessonService {
             id,
             { completed: true }
         );
-        await this.notificationService.create({
-            title: 'Lesson Completed',
-            content: `Lesson ${lesson.title} has been completed`,
-            type: 'info',
-        });
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_COMPLETED };
     }
 
@@ -114,16 +110,17 @@ export class LessonService {
             });
 
             await pdfCreationPromise;
-            const sendMailPromise = this.emailService.sendEmail(userdata.email, 'Certificate of Completion', pdfFilePath);
+            const sendMailPromise = this.emailService.sendEmail(userdata.email, MESSAGE.CERTIFICATE_OF_COMPLETION, pdfFilePath);
             const sendMailResult = await sendMailPromise;
 
             if (!sendMailResult) {
                 return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.EMAIL_SEND_FAILED };
             }
+
             await this.notificationService.create({
-                title: 'Congratulations for Completing the Course',
-                content: `Certificate has been sent to ${userdata.email} successfully`,
-                type: 'info',
+                title: MESSAGE.COURSE_COMPLITION,
+                content: MESSAGE.CERTIFICATE_SENT_MSG(userdata.email),
+                type: NotificationType.INFO,
             });
             return { statusCode: HttpStatus.OK, message: MESSAGE.CERTIFICATE_SENT };
         } catch (error) {
