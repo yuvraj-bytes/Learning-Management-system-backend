@@ -1,16 +1,10 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
+import { NotificationType } from "src/api/notification/enum/notification.enum";
 import { Notification } from "src/api/notification/schema/notificcation.schema";
 import { ResponseDto } from "src/common/dto/response.dto";
-import { MESSAGE, NOTIFICATION } from "src/constants/constants";
-
-export enum NotificationType {
-    INFO = 'info',
-    WARNING = 'warning',
-    ERROR = 'error',
-}
-
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "src/constants/constants";
 @Injectable()
 export class NotificationService {
 
@@ -22,7 +16,7 @@ export class NotificationService {
         try {
             const createdNotification = new this.notificationModel({ title, content, type });
             createdNotification.save();
-            return { statusCode: HttpStatus.OK, message: NOTIFICATION.NOTIFICATION_CREATED }
+            return { statusCode: HttpStatus.OK, message: NOTIFICATION_TITLE.NOTIFICATION_CREATED }
         } catch (error) {
             return { statusCode: HttpStatus.BAD_REQUEST, message: error.message }
         }

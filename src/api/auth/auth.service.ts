@@ -4,7 +4,7 @@ import { Model } from "mongoose";
 import { User } from "../users/schema/user.schema";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from "@nestjs/jwt";
-import { MESSAGE } from "src/constants/constants";
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "src/constants/constants";
 import { EmailService } from "../../utills/email.service";
 import { StripeService } from "../stripe/ stripe.service";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -14,7 +14,8 @@ import { ConfigService } from "@nestjs/config";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ErrorHandlerService } from "src/utills/error-handler.service";
-import { NotificationType, NotificationService } from "src/utills/notification.service";
+import { NotificationService } from "src/utills/notification.service";
+import { NotificationType } from "../notification/enum/notification.enum";
 @Injectable()
 export class AuthService {
     constructor(
@@ -121,7 +122,7 @@ export class AuthService {
             user.resetTokenExpiration = null;
             await user.save();
 
-            const data = this.notificationService.sendNotification(MESSAGE.PASSWORD_RESET, MESSAGE.PASSWORD_RESET_CONTENT, NotificationType.INFO);
+            const data = this.notificationService.sendNotification(NOTIFICATION_TITLE.PASSWORD_RESET, NOTIFICATION.PASSWORD_RESET_CONTENT, NotificationType.INFO);
 
             return { statusCode: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
         } catch (error) {

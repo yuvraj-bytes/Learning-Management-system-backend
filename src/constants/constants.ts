@@ -48,13 +48,25 @@ export const MESSAGE = {
 };
 
 export const NOTIFICATION = {
-    NOTIFICATION_CREATED: 'Notification created successfully',
-    NOTIFCATION_LIST: 'Notification list',
+
     COURSE_ENROLLED_CONTENT: (courseName: string) => `You have enrolled in the course ${courseName} successfully`,
     COURSE_CREATED_CONTENT: (courseName: string) => `A new course ${courseName} has been created`,
-    COURSE_CREATION_FAILED_MSG: (error: string) => `Course creation failed due to ${error}`,
+    COURSE_CREATION_FAILED_CONTENT: (error: string) => `Course creation failed due to ${error}`,
     COURSE_UPDATION_FAILED: (courseName: string) => `Course update failed for ${courseName}`,
-    COURSE_UPDATED_MSG: (courseName: string) => `Course ${courseName} has been updated`,
-    LESSON_CREATED_MSG: (lessonName: string) => `Lesson ${lessonName} has been created`,
-    CERTIFICATE_SENT_MSG: (email: string) => `Certificate has been sent to your email id ${email}`,
+    COURSE_UPDATED_CONTENT: (courseName: string) => `Course ${courseName} has been updated`,
+    LESSON_CREATED_CONTENT: (lessonName: string) => `Lesson ${lessonName} has been created`,
+    CERTIFICATE_SENT_CONTENT: (email: string) => `Certificate has been sent to your email id ${email}`,
+    PASSWORD_RESET_CONTENT: 'Your password has been reset successfully',
+    COURSE_CREATION_FAILED: 'Course creation failed',
 };
+
+export const NOTIFICATION_TITLE = {
+    NOTIFICATION_CREATED: 'Notification created successfully',
+    NOTIFCATION_LIST: 'Notification list',
+    PASSWORD_RESET: 'Password reset successful',
+    COURSE_CREATED: 'Course created successfully',
+    COURSE_UPDATED: 'Course updated successfully',
+    COURSE_ENROLLED: 'Course enrolled successfully',
+    LESSON_CREATED: 'Lesson created successfully',
+    COURSE_COMPLITION: 'You have completed the course successfully',
+}

@@ -5,13 +5,14 @@ import { Model } from "mongoose";
 import { CreateLessonDto } from "./dto/create-lesson.dto";
 import { ConfigService } from "@nestjs/config";
 import * as cloudinary from 'cloudinary';
-import { MESSAGE, NOTIFICATION } from "src/constants/constants";
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "src/constants/constants";
 import { ResponseDto } from "src/common/dto/response.dto";
 import { EmailService } from "src/utills/email.service";
 import * as ejs from 'ejs';
 import * as path from 'path';
 import * as pdf from 'html-pdf';
-import { NotificationType, NotificationService } from "src/utills/notification.service";
+import { NotificationService } from "src/utills/notification.service";
+import { NotificationType } from "../notification/enum/notification.enum";
 
 @Injectable()
 export class LessonService {
@@ -52,7 +53,7 @@ export class LessonService {
 
         await createdLesson.save();
 
-        await this.notificationService.sendNotification(MESSAGE.LESSON_CREATED, NOTIFICATION.LESSON_CREATED_MSG(lesson.title), NotificationType.INFO);
+        await this.notificationService.sendNotification(NOTIFICATION_TITLE.LESSON_CREATED, NOTIFICATION.LESSON_CREATED_CONTENT(lesson.title), NotificationType.INFO);
 
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_CREATED, data: createdLesson };
     }
@@ -113,7 +114,7 @@ export class LessonService {
                 return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.EMAIL_SEND_FAILED };
             }
 
-            await this.notificationService.sendNotification(MESSAGE.COURSE_COMPLITION, NOTIFICATION.CERTIFICATE_SENT_MSG(userdata.email), NotificationType.INFO);
+            await this.notificationService.sendNotification(NOTIFICATION_TITLE.COURSE_COMPLITION, NOTIFICATION.CERTIFICATE_SENT_CONTENT(userdata.email), NotificationType.INFO);
             return { statusCode: HttpStatus.OK, message: MESSAGE.CERTIFICATE_SENT };
         } catch (error) {
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.INTERNAL_SERVER_ERROR };
