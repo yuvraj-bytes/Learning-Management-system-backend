@@ -3,7 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Notification } from "src/api/notification/schema/notificcation.schema";
 import { ResponseDto } from "src/common/dto/response.dto";
-import { MESSAGE } from "src/constants/constants";
+import { MESSAGE, NOTIFICATION } from "src/constants/constants";
 
 export enum NotificationType {
     INFO = 'info',
@@ -22,7 +22,7 @@ export class NotificationService {
         try {
             const createdNotification = new this.notificationModel({ title, content, type });
             createdNotification.save();
-            return { statusCode: HttpStatus.OK, message: MESSAGE.NOTIFICATION_CREATED }
+            return { statusCode: HttpStatus.OK, message: NOTIFICATION.NOTIFICATION_CREATED }
         } catch (error) {
             return { statusCode: HttpStatus.BAD_REQUEST, message: error.message }
         }

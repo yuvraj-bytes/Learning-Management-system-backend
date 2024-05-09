@@ -8,7 +8,7 @@ import { User } from "../users/schema/user.schema";
 import { Lesson } from "../lesson/schema/lesson.schema";
 import { Enrollment } from "./schema/enrollments.schema";
 import { UpdateCourseDto } from "./dto/update-course.dto";
-import { MESSAGE } from "src/constants/constants";
+import { MESSAGE, NOTIFICATION } from "src/constants/constants";
 import { ConfigService } from "@nestjs/config";
 import { StripeService } from "../stripe/ stripe.service";
 import { ResponseDto } from "src/common/dto/response.dto";
@@ -72,14 +72,14 @@ export class CourseService {
             course.price_id = price.id;
 
             await course.save();
-            const data = await this.notificationService.sendNotification(MESSAGE.COURSE_CREATED, MESSAGE.COURSE_CREATED_CONTENT(createCourseDto.title), NotificationType.INFO);
+            const data = await this.notificationService.sendNotification(MESSAGE.COURSE_CREATED, NOTIFICATION.COURSE_CREATED_CONTENT(createCourseDto.title), NotificationType.INFO);
 
             await this.notificationTable.create(data);
             return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_CREATED };
         }
 
         catch (error) {
-            await this.notificationService.sendNotification(MESSAGE.COURSE_CREATION_FAILED, MESSAGE.COURSE_CREATION_FAILED_MSG(error.message), NotificationType.ERROR);
+            await this.notificationService.sendNotification(MESSAGE.COURSE_CREATION_FAILED, NOTIFICATION.COURSE_CREATION_FAILED_MSG(error.message), NotificationType.ERROR);
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: error.message };
         }
     }
@@ -173,11 +173,11 @@ export class CourseService {
 
         const updatedCourse = await this.courseModel.findByIdAndUpdate(course._id, { ...updateCourseDto });
         if (!updatedCourse) {
-            await this.notificationService.sendNotification(MESSAGE.COURSE_CREATION_FAILED, MESSAGE.COURSE_UPDATION_FAILED(course.title), NotificationType.ERROR);
+            await this.notificationService.sendNotification(MESSAGE.COURSE_CREATION_FAILED, NOTIFICATION.COURSE_UPDATION_FAILED(course.title), NotificationType.ERROR);
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.COURSE_UPDATE_FAILED };
         }
 
-        await this.notificationService.sendNotification(MESSAGE.COURSE_UPDATED, MESSAGE.COURSE_UPDATED_MSG(course.title), NotificationType.INFO);
+        await this.notificationService.sendNotification(MESSAGE.COURSE_UPDATED, NOTIFICATION.COURSE_UPDATED_MSG(course.title), NotificationType.INFO);
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_UPDATED, data: updatedCourse };
     }
 
@@ -236,7 +236,7 @@ export class CourseService {
             platform: '',
         });
 
-        await this.notificationService.sendNotification(MESSAGE.COURSE_ENROLLED, MESSAGE.COURSE_ENROLLED_CONTENT(course.title), NotificationType.INFO);
+        await this.notificationService.sendNotification(MESSAGE.COURSE_ENROLLED, NOTIFICATION.COURSE_ENROLLED_CONTENT(course.title), NotificationType.INFO);
 
         return { statusCode: HttpStatus.OK, message: MESSAGE.COURSE_PURCHASED, data: { Order, enrollment } };
     }

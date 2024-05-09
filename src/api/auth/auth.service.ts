@@ -123,7 +123,6 @@ export class AuthService {
 
             const data = this.notificationService.sendNotification(MESSAGE.PASSWORD_RESET, MESSAGE.PASSWORD_RESET_CONTENT, NotificationType.INFO);
 
-            console.log(data)
             return { statusCode: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
         } catch (error) {
             await this.errorHandlerService.HttpException(error);
