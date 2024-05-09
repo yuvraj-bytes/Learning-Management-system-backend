@@ -24,13 +24,13 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   // Validate the PORT value using Joi
-  const { error, value: port } = portSchema.validate(configService.get<number>('PORT'));
-  if (error) {
-    throw new Error(`Invalid PORT configuration: ${error.message}`);
-  }
+  // const { error, value: port } = portSchema.validate(configService.get<number>('PORT'));
+  // if (error) {
+  //   throw new Error(`Invalid PORT configuration: ${error.message}`);
+  // }
 
-  await app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  await app.listen(3000, () => {
+    console.log(`Server is running on port 3000`);
   });
 }
 
