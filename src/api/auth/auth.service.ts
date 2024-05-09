@@ -4,7 +4,7 @@ import { Model } from "mongoose";
 import { User } from "../users/schema/user.schema";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from "@nestjs/jwt";
-import { MESSAGE } from "src/constants/constants";
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "src/constants/constants";
 import { EmailService } from "../../utills/email.service";
 import { StripeService } from "../stripe/ stripe.service";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -14,6 +14,8 @@ import { ConfigService } from "@nestjs/config";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
 import { ErrorHandlerService } from "src/utills/error-handler.service";
+import { NotificationService } from "src/utills/notification.service";
+import { NotificationType } from "../notification/enum/notification.enum";
 @Injectable()
 export class AuthService {
     constructor(
@@ -23,6 +25,7 @@ export class AuthService {
         private readonly stripeService: StripeService,
         private readonly configService: ConfigService,
         private readonly errorHandlerService: ErrorHandlerService,
+        private readonly notificationService: NotificationService
     ) { }
 
     async signup(createUserDto: CreateUserDto): Promise<ResponseDto> {
@@ -63,7 +66,7 @@ export class AuthService {
         }
     }
 
-    async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<ResponseDto | any> {
+    async forgotPassword(forgotPasswordDto: ForgotPasswordDto): Promise<ResponseDto> {
 
         try {
 
@@ -87,6 +90,7 @@ export class AuthService {
                     resetTokenExpiration: new Date(Date.now() + Number(this.configService.get('TOKEN_EXPIRY')))
                 }
             );
+
             return { statusCode: HttpStatus.OK, message: MESSAGE.RESET_PASSWORD_EMAIL_SENT };
         }
         catch (error) {
@@ -117,6 +121,8 @@ export class AuthService {
             user.resetToken = null;
             user.resetTokenExpiration = null;
             await user.save();
+
+            const data = this.notificationService.sendNotification(NOTIFICATION_TITLE.PASSWORD_RESET, NOTIFICATION.PASSWORD_RESET_CONTENT, NotificationType.INFO);
 
             return { statusCode: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
         } catch (error) {
