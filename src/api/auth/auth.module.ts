@@ -28,7 +28,7 @@ import { NotificationService } from 'src/utills/notification.service';
         StripeModule,
     ],
     controllers: [AuthController],
-    providers: [AuthController, AuthService, JwtStrategy, EmailService, StripeService, ErrorHandlerService, NotificationService],
+    providers: [AuthService, JwtStrategy, EmailService, StripeService, ErrorHandlerService, NotificationService],
     exports: [AuthService],
 })
 
