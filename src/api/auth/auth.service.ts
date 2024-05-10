@@ -4,7 +4,7 @@ import { Model } from "mongoose";
 import { User } from "../users/schema/user.schema";
 import * as bcrypt from 'bcrypt';
 import { JwtService } from "@nestjs/jwt";
-import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "src/constants/constants";
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "../../constants/constants";
 import { EmailService } from "../../utills/email.service";
 import { StripeService } from "../stripe/ stripe.service";
 import { CreateUserDto } from "./dto/create-user.dto";
