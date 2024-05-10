@@ -5,7 +5,7 @@ import { Model } from "mongoose";
 import { CreateLessonDto } from "./dto/create-lesson.dto";
 import { ConfigService } from "@nestjs/config";
 import * as cloudinary from 'cloudinary';
-import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "src/constants/constants";
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "../../constants/constants";
 import { ResponseDto } from "src/common/dto/response.dto";
 import { EmailService } from "src/utills/email.service";
 import * as ejs from 'ejs';

@@ -6,7 +6,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { hash } from "bcrypt";
 import { Enrollment } from "../course/schema/enrollments.schema";
 import { UserOutputDto } from "./dto/users-output-dto";
-import { MESSAGE } from "src/constants/constants";
+import { MESSAGE } from "../../constants/constants";
 @Injectable()
 export class UserService {
 

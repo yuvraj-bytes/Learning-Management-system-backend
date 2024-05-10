@@ -8,7 +8,7 @@ import { User } from "../users/schema/user.schema";
 import { Lesson } from "../lesson/schema/lesson.schema";
 import { Enrollment } from "./schema/enrollments.schema";
 import { UpdateCourseDto } from "./dto/update-course.dto";
-import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "src/constants/constants";
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "../../constants/constants";
 import { ConfigService } from "@nestjs/config";
 import { StripeService } from "../stripe/ stripe.service";
 import { ResponseDto } from "src/common/dto/response.dto";
