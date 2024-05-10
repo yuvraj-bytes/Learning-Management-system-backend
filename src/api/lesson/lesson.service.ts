@@ -6,12 +6,12 @@ import { CreateLessonDto } from "./dto/create-lesson.dto";
 import { ConfigService } from "@nestjs/config";
 import * as cloudinary from 'cloudinary';
 import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "../../constants/constants";
-import { ResponseDto } from "src/common/dto/response.dto";
-import { EmailService } from "src/utills/email.service";
+import { ResponseDto } from "../../common/dto/response.dto";
+import { EmailService } from "../../utills/email.service";
 import * as ejs from 'ejs';
 import * as path from 'path';
 import * as pdf from 'html-pdf';
-import { NotificationService } from "src/utills/notification.service";
+import { NotificationService } from "../../utills/notification.service";
 import { NotificationType } from "../notification/enum/notification.enum";
 
 @Injectable()

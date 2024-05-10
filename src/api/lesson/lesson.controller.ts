@@ -1,9 +1,9 @@
 import { Body, Controller, Get, Param, Post, Res, UploadedFiles, UseGuards, UseInterceptors } from "@nestjs/common";
 import { LessonService } from "./lesson.service";
-import {  FilesInterceptor } from "@nestjs/platform-express";
+import { FilesInterceptor } from "@nestjs/platform-express";
 import { CreateLessonDto } from "./dto/create-lesson.dto";
 import { AuthGuard } from "@nestjs/passport";
-import { ResponseDto } from "src/common/dto/response.dto";
+import { ResponseDto } from "../../common/dto/response.dto";
 import { GetUser } from "../users/guard/getUser.guard";
 import { RolesGuard } from "../auth/guard/role.guard";
 import { ApiTags } from "@nestjs/swagger";

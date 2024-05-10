@@ -11,10 +11,10 @@ import { UpdateCourseDto } from "./dto/update-course.dto";
 import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "../../constants/constants";
 import { ConfigService } from "@nestjs/config";
 import { StripeService } from "../stripe/ stripe.service";
-import { ResponseDto } from "src/common/dto/response.dto";
+import { ResponseDto } from "../../common/dto/response.dto";
 import { Order } from "./schema/order.schema";
-import { UploadImageService } from "src/utills/upload-image";
-import { NotificationService } from "src/utills/notification.service";
+import { UploadImageService } from "../../utills/upload-image";
+import { NotificationService } from "../../utills/notification.service";
 import { Notification } from "../notification/schema/notificcation.schema";
 import { NotificationType } from "../notification/enum/notification.enum";
 @Injectable()

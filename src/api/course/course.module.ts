@@ -8,8 +8,8 @@ import { Lesson, LessonSchema } from "../lesson/schema/lesson.schema";
 import { Enrollment, EnrollmentsSchema } from "./schema/enrollments.schema";
 import { Order, OrderSchema } from "./schema/order.schema";
 import { StripeService } from "../stripe/ stripe.service";
-import { UploadImageService } from "src/utills/upload-image";
-import { NotificationService } from "src/utills/notification.service";
+import { UploadImageService } from "../../utills/upload-image";
+import { NotificationService } from "../../utills/notification.service";
 import { Notification, NotificationSchema } from "../notification/schema/notificcation.schema";
 @Module({
     imports: [

@@ -5,9 +5,9 @@ import { LessonController } from "./lesson.controller";
 import { LessonService } from "./lesson.service";
 import { MulterModule } from "@nestjs/platform-express";
 import { Course, CourseSchema } from "../course/schema/course.schema";
-import { EmailService } from "src/utills/email.service";
-import { ErrorHandlerService } from "src/utills/error-handler.service";
-import { NotificationService } from "src/utills/notification.service";
+import { EmailService } from "../../utills/email.service";
+import { ErrorHandlerService } from "../../utills/error-handler.service";
+import { NotificationService } from "../../utills/notification.service";
 import { Notification, NotificationSchema } from "../notification/schema/notificcation.schema";
 @Module({
     imports: [

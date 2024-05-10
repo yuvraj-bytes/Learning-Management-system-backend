@@ -7,7 +7,7 @@ import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/guard/role.guard";
 import { GetUser } from "../users/guard/getUser.guard";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { ResponseDto } from "src/common/dto/response.dto";
+import { ResponseDto } from "../../common/dto/response.dto";
 import { ApiBody, ApiConsumes, ApiTags } from "@nestjs/swagger";
 import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
 @ApiTags('Course')

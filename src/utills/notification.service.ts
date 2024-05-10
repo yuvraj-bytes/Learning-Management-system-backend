@@ -1,10 +1,10 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
-import { NotificationType } from "src/api/notification/enum/notification.enum";
-import { Notification } from "src/api/notification/schema/notificcation.schema";
-import { ResponseDto } from "src/common/dto/response.dto";
-import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "src/constants/constants";
+import { NotificationType } from "../api/notification/enum/notification.enum";
+import { Notification } from "../api/notification/schema/notificcation.schema"
+import { ResponseDto } from "../common/dto/response.dto";
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "../constants/constants";
 @Injectable()
 export class NotificationService {
 

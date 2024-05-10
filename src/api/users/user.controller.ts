@@ -4,7 +4,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { AuthGuard } from "@nestjs/passport";
 import { RolesGuard } from "../auth/guard/role.guard";
 import { Roles } from "../auth/decorator/roles.decorator";
-import { ROLES } from "src/enum/role.enum";
+import { ROLES } from "../../enum/role.enum";
 import { GetUser } from "./guard/getUser.guard";
 import { Throttle } from "@nestjs/throttler";
 import { ApiTags } from "@nestjs/swagger";

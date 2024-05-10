@@ -8,13 +8,13 @@ import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "../../constants/const
 import { EmailService } from "../../utills/email.service";
 import { StripeService } from "../stripe/ stripe.service";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { ResponseDto } from "src/common/dto/response.dto";
+import { ResponseDto } from "../../common/dto/response.dto";
 import { LoginDto } from "./dto/login.dto";
 import { ConfigService } from "@nestjs/config";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import { ForgotPasswordDto } from "./dto/forgot-password.dto";
-import { ErrorHandlerService } from "src/utills/error-handler.service";
-import { NotificationService } from "src/utills/notification.service";
+import { ErrorHandlerService } from "../../utills/error-handler.service";
+import { NotificationService } from "../../utills/notification.service";
 import { NotificationType } from "../notification/enum/notification.enum";
 @Injectable()
 export class AuthService {
