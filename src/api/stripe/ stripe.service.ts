@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
+import { InjectModel } from '@nestjs/mongoose';
+import { User } from '../users/schema/user.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class StripeService {
     private readonly stripe: Stripe;
-    constructor(private readonly configService: ConfigService) {
+    constructor(private readonly configService: ConfigService,
+        @InjectModel(User.name) private userModel: Model<User>
+    ) {
         const stripeKey = this.configService.get('STRIPE_SECRET_KEY');
         this.stripe = new Stripe(stripeKey);
     }
@@ -32,7 +37,9 @@ export class StripeService {
         return { clientSecret: paymentIntent.client_secret };
     }
 
-    async createcheckoutSession(priceId: string): Promise<Stripe.Checkout.Session> {
+    async createcheckoutSession(priceId: string, userdata: any): Promise<Stripe.Checkout.Session | any> {
+
+        const user = await this.userModel.findOne({ _id: userdata?.userId });
         return this.stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
@@ -41,10 +48,20 @@ export class StripeService {
                     quantity: 1,
                 },
             ],
-            success_url: 'http://localhost:3000/success',
-            cancel_url: 'http://localhost:3000/cancel',
-            mode: 'payment',
-            ui_mode: 'embedded'
+            customer: user?.stripeCustomerId,
+            success_url: 'http://localhost:3001/enroll',
+            cancel_url: 'http://localhost:3001/cancel',
+            mode: 'payment'
         });
     }
+
+    async processWebhookEvent(payload: any): Promise<void> {
+        return payload;
+        // const webhookEvent = new this.webhookEventModel({
+        //     eventType: payload.type,
+        //     eventData: payload.data,
+        // });
+        // await webhookEvent.save();
+    }
+
 }

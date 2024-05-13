@@ -1,40 +1,38 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { AuthService } from "./auth.service";
-import { User } from "../users/schema/user.schema";
-import { LoginOutputDto } from "./dto/login-output.dto";
-import { SignupOutputDto } from "./dto/signup-output";
-import { StripeService } from "./ stripe.service";
-
+import { ResponseDto } from "../../common/dto/response.dto";
+import { LoginDto } from "./dto/login.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
+import { ForgotPasswordDto } from "./dto/forgot-password.dto";
+import { ApiTags, ApiHeader } from "@nestjs/swagger";
+import { Throttle, ThrottlerGuard } from "@nestjs/throttler";
+@ApiTags('auth')
 @Controller('auth')
+@Throttle({ default: { limit: 3, ttl: 60000 } })
 export class AuthController {
 
-    constructor(private readonly authService: AuthService,
-        private stripeService: StripeService
+    constructor(private readonly authService: AuthService
     ) { }
 
     @Post('signup')
-    async create(@Body() createUserDto: CreateUserDto): Promise<User | SignupOutputDto> {
+    async create(@Body() createUserDto: CreateUserDto): Promise<ResponseDto> {
         return await this.authService.signup(createUserDto);
     }
 
     @Post('signin')
-    async signIn(@Body('email') email: string, @Body('password') password: string): Promise<User | LoginOutputDto> {
-        return this.authService.signIn(email, password);
+    async signIn(@Body() loginDto: LoginDto): Promise<ResponseDto> {
+        return await this.authService.signIn(loginDto);
     }
 
     @Post('forgot-password')
-    async forgotPassword(@Body('email') email: string) {
-        return this.authService.forgotPassword(email);
+    @UseGuards(ThrottlerGuard)
+    async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto): Promise<ResponseDto> {
+        return await this.authService.forgotPassword(forgotPasswordDto);
     }
 
     @Patch('reset-password/:token')
-    async resetPassword(@Body('email') email: string, @Body('newPassword') newPassword: string, @Param('token') resetToken: string) {
-        return this.authService.resetPassword(email, newPassword, resetToken);
-    }
-
-    @Get('/checkout-session/:priceId')
-    async checkout(@Param('priceId') priceId: string) {
-        return this.stripeService.createcheckoutSession(priceId);
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto, @Param('token') resetToken: string): Promise<ResponseDto> {
+        return await this.authService.resetPassword(resetPasswordDto, resetToken);
     }
 }
