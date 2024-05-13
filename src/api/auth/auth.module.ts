@@ -10,9 +10,11 @@ import { StripeModule } from '../stripe/stripe.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ErrorHandlerService } from 'src/utills/error-handler.service';
 import { EmailService } from 'src/utills/email.service';
+import { Notification, NotificationSchema } from '../notification/schema/notificcation.schema';
+import { NotificationService } from 'src/utills/notification.service';
 @Module({
     imports: [
-        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+        MongooseModule.forFeature([{ name: User.name, schema: UserSchema }, { name: Notification.name, schema: NotificationSchema }]),
         //PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.registerAsync({
             imports: [ConfigModule],
@@ -23,10 +25,10 @@ import { EmailService } from 'src/utills/email.service';
             }),
             inject: [ConfigService]
         }),
-        StripeModule
+        StripeModule,
     ],
     controllers: [AuthController],
-    providers: [AuthController, AuthService, JwtStrategy, EmailService, StripeService, ErrorHandlerService],
+    providers: [AuthService, JwtStrategy, EmailService, StripeService, ErrorHandlerService, NotificationService],
     exports: [AuthService],
 })
 

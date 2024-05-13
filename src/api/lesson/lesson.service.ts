@@ -5,20 +5,22 @@ import { Model } from "mongoose";
 import { CreateLessonDto } from "./dto/create-lesson.dto";
 import { ConfigService } from "@nestjs/config";
 import * as cloudinary from 'cloudinary';
-import { MESSAGE } from "src/constants/constants";
-import { ResponseDto } from "src/common/dto/response.dto";
-import * as fs from 'fs';
-import * as PDFDocument from 'pdfkit';
-import { EmailService } from "src/utills/email.service";
+import { MESSAGE, NOTIFICATION, NOTIFICATION_TITLE } from "../../constants/constants";
+import { ResponseDto } from "../../common/dto/response.dto";
+import { EmailService } from "../../utills/email.service";
 import * as ejs from 'ejs';
 import * as path from 'path';
 import * as pdf from 'html-pdf';
+import { NotificationService } from "../../utills/notification.service";
+import { NotificationType } from "../notification/enum/notification.enum";
+
 @Injectable()
 export class LessonService {
 
     constructor(@InjectModel(Lesson.name) private readonly lessonTable: Model<Lesson>,
         private readonly configService: ConfigService,
-        private readonly emailService: EmailService) { }
+        private readonly emailService: EmailService,
+        private readonly notificationService: NotificationService) { }
 
     async createLesson(lesson: CreateLessonDto, files: any): Promise<ResponseDto> {
         const existingLesson = await this.lessonTable.findOne({ title: lesson.title });
@@ -48,7 +50,10 @@ export class LessonService {
                 createdLesson.thumbnail = result.secure_url;
             }
         }
+
         await createdLesson.save();
+
+        await this.notificationService.sendNotification(NOTIFICATION_TITLE.LESSON_CREATED, NOTIFICATION.LESSON_CREATED_CONTENT(lesson.title), NotificationType.INFO);
 
         return { statusCode: HttpStatus.OK, message: MESSAGE.LESSON_CREATED, data: createdLesson };
     }
@@ -102,12 +107,14 @@ export class LessonService {
             });
 
             await pdfCreationPromise;
-            const sendMailPromise = this.emailService.sendEmail(userdata.email, 'Certificate of Completion', pdfFilePath);
+            const sendMailPromise = this.emailService.sendEmail(userdata.email, MESSAGE.CERTIFICATE_OF_COMPLETION, pdfFilePath);
             const sendMailResult = await sendMailPromise;
 
             if (!sendMailResult) {
                 return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.EMAIL_SEND_FAILED };
             }
+
+            await this.notificationService.sendNotification(NOTIFICATION_TITLE.COURSE_COMPLITION, NOTIFICATION.CERTIFICATE_SENT_CONTENT(userdata.email), NotificationType.INFO);
             return { statusCode: HttpStatus.OK, message: MESSAGE.CERTIFICATE_SENT };
         } catch (error) {
             return { statusCode: HttpStatus.INTERNAL_SERVER_ERROR, message: MESSAGE.INTERNAL_SERVER_ERROR };
