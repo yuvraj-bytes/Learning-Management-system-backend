@@ -11,5 +11,12 @@
       "src": "/(.*)",
       "dest": "src/main.ts"
     }
-  ]
+  ],
+  "projectSettings": {
+    "framework": "nestjs",
+    "buildSettings": {
+      "outputDirectory": "dist",
+      "buildCommand": "npm run build"
+    }
+  }
 }
