@@ -1,13 +1,11 @@
-// review-rating.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-
+import mongoose, { Document } from 'mongoose';
 @Schema()
 export class ReviewRating extends Document {
-    @Prop({ required: true })
+    @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'courses' })
     courseId: string;
 
-    @Prop({ required: true })
+    @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'user' })
     userId: string;
 
     @Prop({ required: true })

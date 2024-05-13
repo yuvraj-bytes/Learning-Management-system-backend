@@ -6,6 +6,7 @@ import { UserModule } from './api/users/user.module';
 import { CourseModule } from './api/course/course.module';
 import { LessonModule } from './api/lesson/lesson.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ReviewRatingModule } from './api/reviewRating/review_rating.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,7 +20,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URL'),
+        uri: configService.get<string>('DB_URL'),
       }),
       inject: [ConfigService], // Add this line to inject the ConfigService
     }),
@@ -27,6 +28,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     UserModule,
     CourseModule,
     LessonModule,
+    ReviewRatingModule
   ],
   //   providers: [
   //     {

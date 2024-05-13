@@ -5,7 +5,7 @@ import { Model } from 'mongoose';
 import { ReviewRating } from './schema/review-rating.schema';
 import { ReviewRatingDto } from './dto/review-rating.dto';
 import { ResponseDto } from 'src/common/dto/response.dto';
-
+import { MESSAGE } from 'src/constants/constants';
 @Injectable()
 export class ReviewRatingService {
     constructor(
@@ -16,14 +16,23 @@ export class ReviewRatingService {
     async createReviewRating(reviewRatingDto: ReviewRatingDto): Promise<ResponseDto> {
         const createdReviewRating = new this.reviewRatingModel(reviewRatingDto);
         createdReviewRating.save();
-        return { statusCode: HttpStatus.OK, message: 'Review and rating created successfully', data: createdReviewRating }
+        return { statusCode: HttpStatus.OK, message: MESSAGE.REVIEW_RATING_ADDED, data: createdReviewRating }
     }
 
-    async getReviewsRatingsByCourseId(courseId: string): Promise<ReviewRating[]> {
-        return this.reviewRatingModel.find({ courseId }).exec();
+    async getReviewsRatingsByCourseId(courseId: string): Promise<ResponseDto> {
+        console.log("🚀 ~ ReviewRatingService ~ getReviewsRatingsByCourseId ~ courseId:", courseId)
+        const data = await this.reviewRatingModel.find({ courseId });
+        console.log("🚀 ~ ReviewRatingService ~ getReviewsRatingsByCourseId ~ data:", data)
+        return { statusCode: HttpStatus.OK, message: MESSAGE.REVIEW_RATING_FETCHED, data }
     }
 
-    async getReviewsRatingsByUserId(userId: string): Promise<ReviewRating[]> {
-        return this.reviewRatingModel.find({ userId }).exec();
+    async getReviewsRatingsByUserId(userId: string): Promise<ResponseDto> {
+        const data = await this.reviewRatingModel.find({ userId }).exec();
+        return { statusCode: HttpStatus.OK, message: MESSAGE.REVIEW_RATING_FETCHED, data }
+    }
+
+    async getReviewRatings(): Promise<ResponseDto> {
+        const data = await this.reviewRatingModel.find().exec();
+        return { statusCode: HttpStatus.OK, message: MESSAGE.REVIEW_RATING_FETCHED, data }
     }
 }
