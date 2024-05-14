@@ -4,7 +4,7 @@ import { ReviewRatingService } from './review_rating.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
 import { ReviewRating, ReviewRatingSchema } from './schema/review-rating.schema';
-
+import { ErrorHandlerService } from 'src/utills/error-handler.service';
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: ReviewRating.name, schema: ReviewRatingSchema }]),
@@ -13,7 +13,7 @@ import { ReviewRating, ReviewRatingSchema } from './schema/review-rating.schema'
         }),
     ],
     controllers: [ReviewRatingController],
-    providers: [ReviewRatingService],
+    providers: [ReviewRatingService, ErrorHandlerService],
     exports: [ReviewRatingService]
 })
 export class ReviewRatingModule { }
