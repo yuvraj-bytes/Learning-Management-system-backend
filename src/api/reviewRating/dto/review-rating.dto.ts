@@ -10,13 +10,6 @@ export class ReviewRatingDto {
     courseId: string;
 
     @ApiProperty({
-        description: 'User ID',
-        example: '60f4b1e0b9f1c3f0c4c8d4f1'
-    })
-    @IsNotEmpty()
-    userId: string;
-
-    @ApiProperty({
         description: 'Review',
         example: 'This course is awesome!'
     })

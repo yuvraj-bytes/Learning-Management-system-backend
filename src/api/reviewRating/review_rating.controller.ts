@@ -12,8 +12,10 @@ export class ReviewRatingController {
     constructor(private readonly reviewRatingService: ReviewRatingService) { }
 
     @Post()
-    async createReviewRating(@Body() reviewRatingDto: ReviewRatingDto): Promise<ResponseDto> {
-        return await this.reviewRatingService.createReviewRating(reviewRatingDto);
+    @ApiBearerAuth()
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    async createReviewRating(@Body() reviewRatingDto: ReviewRatingDto, @GetUser() userData: any): Promise<ResponseDto> {
+        return await this.reviewRatingService.createReviewRating(reviewRatingDto, userData);
     }
 
     @Get()
@@ -29,7 +31,12 @@ export class ReviewRatingController {
     @Get('user')
     @ApiBearerAuth()
     @UseGuards(AuthGuard('jwt'), RolesGuard)
-    async getReviewsRatingsByUserId(@GetUser() userId: any): Promise<ResponseDto> {
-        return await this.reviewRatingService.getReviewsRatingsByUserId(userId);
+    async getReviewsRatingsByUserId(@GetUser() userData: any): Promise<ResponseDto> {
+        return await this.reviewRatingService.getReviewsRatingsByUserId(userData);
+    }
+
+    @Get('overall-rating/:courseId')
+    async getOverallRating(@Param('courseId') courseId: string): Promise<ResponseDto> {
+        return await this.reviewRatingService.getOverallCourseReview(courseId);
     }
 }

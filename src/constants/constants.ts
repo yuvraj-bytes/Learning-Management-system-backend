@@ -47,6 +47,7 @@ export const MESSAGE = {
     COURSE_COMPLITION: 'Congratulations for Completing the Course',
     REVIEW_RATING_ADDED: 'Review and rating added successfully',
     REVIEW_RATING_FETCHED: 'Review and rating fetched successfully',
+    GET_OVERALL_RATING: 'Overall rating fetched successfully',
 };
 
 export const NOTIFICATION = {
