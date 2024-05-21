@@ -60,12 +60,24 @@ export class ReviewRatingService {
                         'from': 'users',
                         'localField': 'userId',
                         'foreignField': '_id',
-                        'as': 'userId'
+                        'as': 'user'
                     }
                 }, {
                     '$unwind': {
-                        'path': '$userId',
+                        'path': '$user',
                         'preserveNullAndEmptyArrays': true
+                    }
+                },
+                {
+                    '$project': {
+                        'user.first_name': 1,
+                        'user.last_name': 1,
+                        'user.email': 1,
+                        'user.role': 1,
+                        'user.contact': 1,
+                        'rating': 1,
+                        'review': 1,
+                        'courseId': 1
                     }
                 }
             ]).exec();
@@ -107,6 +119,21 @@ export class ReviewRatingService {
                         'path': '$courseId',
                         'preserveNullAndEmptyArrays': true
                     }
+                },
+                {
+                    '$project': {
+                        'userId.first_name': 1,
+                        'userId.last_name': 1,
+                        'userId.email': 1,
+                        'userId.role': 1,
+                        'userId.contact': 1,
+                        'rating': 1,
+                        'review': 1,
+                        'courseId.title': 1,
+                        'courseId.description': 1,
+                        'courseId.price': 1,
+                        'courseId.averageRating': 1
+                    }   
                 }
             ]).exec();
             return { statusCode: HttpStatus.OK, message: MESSAGE.REVIEW_RATING_FETCHED, data }
