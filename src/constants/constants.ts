@@ -45,6 +45,10 @@ export const MESSAGE = {
     COURSE_CREATION_FAILED: 'Course creation failed',
     CERTIFICATE_OF_COMPLETION: 'Certificate of Completion',
     COURSE_COMPLITION: 'Congratulations for Completing the Course',
+    REVIEW_RATING_ADDED: 'Review and rating added successfully',
+    REVIEW_RATING_FETCHED: 'Review and rating fetched successfully',
+    GET_OVERALL_RATING: 'Overall rating fetched successfully',
+    REVIEW_RATING_UPDATED: 'Review and rating updated successfully',
 };
 
 export const NOTIFICATION = {
