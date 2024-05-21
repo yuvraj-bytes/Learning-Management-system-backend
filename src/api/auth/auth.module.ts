@@ -8,10 +8,10 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { StripeService } from '../stripe/ stripe.service';
 import { StripeModule } from '../stripe/stripe.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ErrorHandlerService } from 'src/utills/error-handler.service';
-import { EmailService } from 'src/utills/email.service';
+import { ErrorHandlerService } from '../../utills/error-handler.service';
+import { EmailService } from '../../utills/email.service';
 import { Notification, NotificationSchema } from '../notification/schema/notificcation.schema';
-import { NotificationService } from 'src/utills/notification.service';
+import { NotificationService } from '../../utills/notification.service';
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: User.name, schema: UserSchema }, { name: Notification.name, schema: NotificationSchema }]),

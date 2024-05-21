@@ -2,11 +2,10 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
-import { ResponseDto } from 'src/common/dto/response.dto';
-import { MESSAGE } from 'src/constants/constants';
-import { Course } from 'src/api/course/schema/course.schema';
+import { ResponseDto } from '../common/dto/response.dto';
+import { MESSAGE } from '../constants/constants';
+import { Course } from '../api/course/schema/course.schema';
 import * as cloudinary from 'cloudinary';
-
 @Injectable()
 export class UploadImageService {
     constructor(

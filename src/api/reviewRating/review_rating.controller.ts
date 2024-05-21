@@ -1,7 +1,7 @@
-import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, UseGuards, Patch } from '@nestjs/common';
 import { ReviewRatingDto } from './dto/review-rating.dto';
 import { ReviewRatingService } from './review_rating.service';
-import { ResponseDto } from 'src/common/dto/response.dto';
+import { ResponseDto } from '../../common/dto/response.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from '../users/guard/getUser.guard';
 import { RolesGuard } from '../auth/guard/role.guard';
@@ -35,8 +35,10 @@ export class ReviewRatingController {
         return await this.reviewRatingService.getReviewsRatingsByUserId(userData);
     }
 
-    @Get('overall-rating/:courseId')
-    async getOverallRating(@Param('courseId') courseId: string): Promise<ResponseDto> {
-        return await this.reviewRatingService.getOverallCourseReview(courseId);
+    @Patch(':id')
+    @ApiBearerAuth()
+    @UseGuards(AuthGuard('jwt'), RolesGuard)
+    async updateReviewRating(@Param('id') id: string, @Body() reviewRatingDto: ReviewRatingDto): Promise<ResponseDto> {
+        return await this.reviewRatingService.updateReviewRating(reviewRatingDto, id);
     }
 }

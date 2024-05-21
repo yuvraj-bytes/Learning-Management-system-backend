@@ -48,6 +48,7 @@ export const MESSAGE = {
     REVIEW_RATING_ADDED: 'Review and rating added successfully',
     REVIEW_RATING_FETCHED: 'Review and rating fetched successfully',
     GET_OVERALL_RATING: 'Overall rating fetched successfully',
+    REVIEW_RATING_UPDATED: 'Review and rating updated successfully',
 };
 
 export const NOTIFICATION = {

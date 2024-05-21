@@ -3,23 +3,45 @@ import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { ReviewRating } from './schema/review-rating.schema';
 import { ReviewRatingDto } from './dto/review-rating.dto';
-import { ResponseDto } from 'src/common/dto/response.dto';
-import { MESSAGE } from 'src/constants/constants';
-import { ErrorHandlerService } from 'src/utills/error-handler.service';
+import { ResponseDto } from '../../common/dto/response.dto';
+import { MESSAGE } from '../../constants/constants';
+import { ErrorHandlerService } from '../../utills/error-handler.service';
+import { Course } from '../course/schema/course.schema';
 @Injectable()
 export class ReviewRatingService {
     constructor(
-        @InjectModel(ReviewRating.name)
-        private readonly reviewRatingModel: Model<ReviewRating>,
+        @InjectModel(ReviewRating.name) private reviewRatingModel: Model<ReviewRating>,
+        @InjectModel(Course.name) private courseModel: Model<Course>,
         private readonly errorHandlerService: ErrorHandlerService,
     ) { }
 
     async createReviewRating(reviewRatingDto: ReviewRatingDto, userData: any): Promise<ResponseDto> {
         try {
+
+            const courseId = reviewRatingDto.courseId;
+            const averageRatingData = await this.reviewRatingModel.aggregate([
+                {
+                    '$match': {
+                        'courseId': new mongoose.Types.ObjectId(courseId)
+                    }
+                }, {
+                    '$group': {
+                        '_id': '$courseId',
+                        'averageRating': { '$avg': '$rating' },
+                        'totalReviews': { '$sum': 1 }
+                    }
+                }
+            ]).exec();
             const createdReviewRating = new this.reviewRatingModel(reviewRatingDto);
             createdReviewRating.userId = userData.userId;
+
             createdReviewRating.save();
-            return { statusCode: HttpStatus.OK, message: MESSAGE.REVIEW_RATING_ADDED, data: createdReviewRating }
+            if (averageRatingData.length > 0) {
+                const averageRating = averageRatingData[0].averageRating;
+                await this.courseModel.updateOne({ _id: courseId }, { averageRating: averageRating });
+            }
+
+            return { statusCode: HttpStatus.OK, message: MESSAGE.REVIEW_RATING_ADDED, data: createdReviewRating };
         }
         catch (error) {
             await this.errorHandlerService.HttpException(error);
@@ -105,9 +127,12 @@ export class ReviewRatingService {
         }
     }
 
-    async getOverallCourseReview(courseId: string): Promise<ResponseDto> {
+    async updateReviewRating(reviewRatingDto: ReviewRatingDto, reviewRatingId: string): Promise<ResponseDto> {
         try {
-            const data = await this.reviewRatingModel.aggregate([
+            const updatedReviewRating = await this.reviewRatingModel.findOneAndUpdate({ courseId: reviewRatingId }, reviewRatingDto, { new: true });
+            // Update course data with average rating
+            const courseId = reviewRatingId;
+            const averageRatingData = await this.reviewRatingModel.aggregate([
                 {
                     '$match': {
                         'courseId': new mongoose.Types.ObjectId(courseId)
@@ -120,12 +145,11 @@ export class ReviewRatingService {
                     }
                 }
             ]).exec();
-            if (data.length === 0) {
-                return { statusCode: HttpStatus.NOT_FOUND, message: MESSAGE.COURSE_NOT_FOUND, data: null };
+            if (averageRatingData.length > 0) {
+                const averageRating = averageRatingData[0].averageRating;
+                await this.courseModel.updateOne({ _id: courseId }, { averageRating: averageRating });
             }
-            const overallRating = data[0].averageRating;
-            const totalReviews = data[0].totalReviews;
-            return { statusCode: HttpStatus.OK, message: MESSAGE.GET_OVERALL_RATING, data: { overallRating, totalReviews } };
+            return { statusCode: HttpStatus.OK, message: MESSAGE.REVIEW_RATING_UPDATED, data: updatedReviewRating }
         }
         catch (error) {
             await this.errorHandlerService.HttpException(error);

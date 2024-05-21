@@ -1,5 +1,4 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-
 @Schema()
 export class Course {
 
@@ -25,6 +24,12 @@ export class Course {
 
     @Prop()
     price_id: string;
+
+    @Prop()
+    raating: number;
+
+    @Prop({ required: false })
+    averageRating: number;
 
     @Prop({ default: Date.now })
     created_at: Date;
