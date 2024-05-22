@@ -49,6 +49,10 @@ export const MESSAGE = {
     REVIEW_RATING_FETCHED: 'Review and rating fetched successfully',
     GET_OVERALL_RATING: 'Overall rating fetched successfully',
     REVIEW_RATING_UPDATED: 'Review and rating updated successfully',
+    QUESTION_CREATED: 'Question created successfully',
+    QUESTION_NOT_FOUND: 'Question not found',
+    ANSWER_ADDED: 'Answer added successfully',
+    QUESTION_LIST: 'Question list',
 };
 
 export const NOTIFICATION = {
@@ -62,6 +66,7 @@ export const NOTIFICATION = {
     CERTIFICATE_SENT_CONTENT: (email: string) => `Certificate has been sent to your email id ${email}`,
     PASSWORD_RESET_CONTENT: 'Your password has been reset successfully',
     COURSE_CREATION_FAILED: 'Course creation failed',
+    QUESTION_ADDED_CONTENT: (user: string) => `New question added by ${user}.Please check now`,
 };
 
 export const NOTIFICATION_TITLE = {
@@ -73,4 +78,5 @@ export const NOTIFICATION_TITLE = {
     COURSE_ENROLLED: 'Course enrolled successfully',
     LESSON_CREATED: 'Lesson created successfully',
     COURSE_COMPLITION: 'You have completed the course successfully',
+    QUESTION_CREATED: 'Question created successfully',
 }
