@@ -7,6 +7,7 @@ import { CourseModule } from './api/course/course.module';
 import { LessonModule } from './api/lesson/lesson.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { ReviewRatingModule } from './api/reviewRating/review_rating.module';
+import { QAModule } from './api/QA/qa.module';
 const ENV = process.env.NODE_ENV;
 @Module({
   imports: [
@@ -29,7 +30,8 @@ const ENV = process.env.NODE_ENV;
     UserModule,
     CourseModule,
     LessonModule,
-    ReviewRatingModule
+    ReviewRatingModule,
+    QAModule
   ],
   //   providers: [
   //     {

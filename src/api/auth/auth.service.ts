@@ -115,9 +115,7 @@ export class AuthService {
                 return { statusCode: HttpStatus.BAD_REQUEST, message: MESSAGE.INVALID_TOKEN };
             }
 
-            const saltRounds = 10;
-            const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, saltRounds);
-            user.password = hashedPassword;
+            user.password = resetPasswordDto.newPassword;
             user.resetToken = null;
             user.resetTokenExpiration = null;
             await user.save();
@@ -125,6 +123,7 @@ export class AuthService {
             const data = this.notificationService.sendNotification(NOTIFICATION_TITLE.PASSWORD_RESET, NOTIFICATION.PASSWORD_RESET_CONTENT, NotificationType.INFO);
 
             return { statusCode: HttpStatus.OK, message: MESSAGE.PASSWORD_RESET };
+
         } catch (error) {
             await this.errorHandlerService.HttpException(error);
         }
