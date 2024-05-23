@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { Question } from './schema/question.schema';
 import { CreateAnswerDto } from './dto/create-answer.dto';
@@ -45,7 +45,7 @@ export class QAService {
             }
 
             if (question.userId !== userData.userId) {
-                return { statusCode: HttpStatus.UNAUTHORIZED, message: MESSAGE.INVALID_CREDENTIALS }
+                return { statusCode: HttpStatus.UNAUTHORIZED, message: MESSAGE.CAN_NOT_ANSWER }
             }
 
             question.answers.push({
