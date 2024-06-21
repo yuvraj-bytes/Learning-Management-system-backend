@@ -53,7 +53,7 @@ export const MESSAGE = {
     QUESTION_NOT_FOUND: 'Question not found',
     ANSWER_ADDED: 'Answer added successfully',
     QUESTION_LIST: 'Question list',
-    CAN_NOT_ANSWER: 'Only owner can answer the question.',
+    CAN_NOT_ANSWER: 'Only instructor can answer the question',
 };
 
 export const NOTIFICATION = {
